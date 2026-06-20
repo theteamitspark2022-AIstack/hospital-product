@@ -3,11 +3,11 @@
 // ─────────────────────────────────────────────
 module.exports = {
   hospital: {
-    name: "City Care Hospital",
-    phone: "+1234567890",           // your Twilio number (must match)
-    whatsapp: "https://wa.me/1234567890",
-    website: "https://yourclinic.com",
-    maps: "https://maps.google.com/?q=City+Care+Hospital",
+    name: "TheTeamITSpark",
+    phone: "+14244764956",
+    whatsapp: "https://wa.me/447746134132",
+    website: "https://darling-pika-71905f.netlify.app",
+    maps: "https://maps.google.com/maps?daddr=9+Foxglove+Ave,+Chelmsford+CM1+4FX",
     services: [
       "General Consultation",
       "Emergency Care",
