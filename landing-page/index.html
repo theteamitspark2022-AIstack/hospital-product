@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City Care Hospital — Contact Us</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      max-width: 420px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .header {
+      background: #1a56db;
+      color: #fff;
+      padding: 32px 24px 24px;
+      text-align: center;
+    }
+
+    .header .icon { font-size: 48px; margin-bottom: 12px; }
+    .header h1 { font-size: 22px; font-weight: 700; }
+    .header p { font-size: 14px; opacity: 0.85; margin-top: 6px; }
+
+    .body { padding: 24px; }
+
+    .cta-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn:last-of-type { margin-bottom: 0; }
+
+    .btn-call  { background: #1a56db; color: #fff; }
+    .btn-wa    { background: #25d366; color: #fff; }
+    .btn-maps  { background: #ea4335; color: #fff; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 24px 0;
+    }
+
+    .services-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .services {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .services li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #374151;
+    }
+    .services li::before {
+      content: "✓";
+      color: #1a56db;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .booking-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 24px;
+      font-size: 14px;
+      color: #1e40af;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    footer {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="header">
+      <div class="icon">🏥</div>
+      <h1>City Care Hospital</h1>
+      <p>We're here for you — reach us instantly</p>
+    </div>
+
+    <div class="body">
+      <p class="cta-label">Get in touch</p>
+
+      <a class="btn btn-call" href="tel:+1234567890">
+        📞 Call Us Now
+      </a>
+
+      <a class="btn btn-wa" href="https://wa.me/1234567890" target="_blank" rel="noopener">
+        💬 Chat on WhatsApp
+      </a>
+
+      <a class="btn btn-maps" href="https://maps.google.com/?q=City+Care+Hospital" target="_blank" rel="noopener">
+        📍 Get Directions
+      </a>
+
+      <hr class="divider" />
+
+      <p class="services-title">Our Services</p>
+      <ul class="services">
+        <li>General Consultation</li>
+        <li>Emergency Care</li>
+        <li>Maternity &amp; Child Health</li>
+        <li>Diagnostics &amp; Lab Tests</li>
+        <li>Physiotherapy</li>
+      </ul>
+
+      <div class="booking-box">
+        📅 <strong>Book an Appointment</strong><br />
+        Reply to our WhatsApp message or tap the button above. We respond within minutes.
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2026 City Care Hospital · <a href="https://yourclinic.com" style="color:#9ca3af">yourclinic.com</a></footer>
+
+</body>
+</html>
