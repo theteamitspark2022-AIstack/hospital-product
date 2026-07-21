@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const callService = require("../services/callService");
 const messageService = require("../services/messageService");
-const db = require("../models/db");
+const twilioSignature = require("../middleware/twilioSignature");
+const config = require("../../config");
 
 // POST /api/calls/inbound — Twilio webhook for call status changes
-router.post("/inbound", async (req, res) => {
+router.post("/inbound", twilioSignature, async (req, res) => {
   const { CallStatus, CallSid, To, From, CallerName, Duration } = req.body;
 
   const missedStatuses = ["no-answer", "busy", "failed", "canceled"];
@@ -18,6 +19,7 @@ router.post("/inbound", async (req, res) => {
     status: CallStatus,
     callerName: CallerName || null,
     duration: Duration ? parseInt(Duration) : 0,
+    businessId: config.hospital.phone,
   });
 
   // Only send WhatsApp message for missed calls

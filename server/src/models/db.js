@@ -27,16 +27,23 @@ async function migrate() {
   if (!pool) return;
   await pool.query(`
     CREATE TABLE IF NOT EXISTS calls (
-      id          SERIAL PRIMARY KEY,
-      call_sid    VARCHAR(64) UNIQUE NOT NULL,
-      from_number VARCHAR(32),
-      to_number   VARCHAR(32),
-      status      VARCHAR(32),
-      caller_name VARCHAR(128),
-      duration    INTEGER DEFAULT 0,
-      created_at  TIMESTAMPTZ DEFAULT NOW()
+      id                  SERIAL PRIMARY KEY,
+      call_sid            VARCHAR(64) UNIQUE NOT NULL,
+      from_number         VARCHAR(32),
+      from_number_hash    VARCHAR(64),
+      to_number           VARCHAR(32),
+      business_id         VARCHAR(64),
+      status              VARCHAR(32),
+      caller_name         VARCHAR(128),
+      duration            INTEGER DEFAULT 0,
+      created_at          TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    ALTER TABLE calls
+      ADD COLUMN IF NOT EXISTS from_number_hash VARCHAR(64),
+      ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)
+  `).catch(() => {});
   console.log("DB migration complete");
 }
 
