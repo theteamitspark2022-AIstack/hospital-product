@@ -44,10 +44,14 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS from_number_hash VARCHAR(64),
       ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)
   `).catch(() => {});
-  // Auth migrations
+  // Auth migrations — add business_id columns, fix type if needed
   await pool.query(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)`).catch(() => {});
   await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)`).catch(() => {});
   await pool.query(`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)`).catch(() => {});
+  // Fix any integer business_id columns to VARCHAR
+  await pool.query(`ALTER TABLE settings ALTER COLUMN business_id TYPE VARCHAR(64) USING business_id::text`).catch(() => {});
+  await pool.query(`ALTER TABLE conversations ALTER COLUMN business_id TYPE VARCHAR(64) USING business_id::text`).catch(() => {});
+  await pool.query(`ALTER TABLE tickets ALTER COLUMN business_id TYPE VARCHAR(64) USING business_id::text`).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS businesses (
       id         VARCHAR(64) PRIMARY KEY,
