@@ -14,12 +14,7 @@ router.get("/", async (req, res) => {
     callbackNumber: config.hospital.phone,
     sector: "Healthcare",
     country: "UK",
-    missedCallTemplate: config.message.template(null)
-      .replace("{HOSPITAL_NAME}", config.hospital.name)
-      .replace("{MAPS}", config.hospital.maps)
-      .replace("{WEBSITE}", config.hospital.website)
-      .replace("{WHATSAPP}", config.hospital.whatsapp)
-      .replace("{BOOKING}", config.hospital.bookingInstruction),
+    missedCallTemplate: config.message.template(null),
   };
 
   if (!db.isConnected()) return res.json(defaults);
