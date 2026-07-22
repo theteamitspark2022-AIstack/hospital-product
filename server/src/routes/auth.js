@@ -102,4 +102,21 @@ router.get("/me", (req, res) => {
   }
 });
 
+// POST /api/auth/make-superadmin — one-time setup, protected by secret key
+router.post("/make-superadmin", async (req, res) => {
+  const { email, secret } = req.body;
+  if (secret !== process.env.ADMIN_SETUP_SECRET) {
+    return res.status(403).json({ error: "Invalid secret" });
+  }
+  try {
+    const { rowCount } = await db.query(
+      "UPDATE users SET role = 'superadmin' WHERE email = $1", [email.toLowerCase()]
+    );
+    if (!rowCount) return res.status(404).json({ error: "User not found" });
+    res.json({ ok: true, message: `${email} is now superadmin` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
