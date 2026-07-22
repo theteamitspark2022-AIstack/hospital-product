@@ -13,6 +13,8 @@ const buddyRouter = require("./routes/buddy");
 const ticketsRouter = require("./routes/tickets");
 const authRouter = require("./routes/auth");
 const billingRouter = require("./routes/billing");
+const appointmentsRouter = require("./routes/appointments");
+const { startReminderScheduler } = require("./services/reminderService");
 const db = require("./models/db");
 
 const app = express();
@@ -36,6 +38,7 @@ app.use("/api/settings", requireAuth, settingsRouter);
 app.use("/api/buddy", requireAuth, buddyRouter);
 app.use("/api/tickets", requireAuth, ticketsRouter);
 app.use("/api/billing", requireAuth, billingRouter);
+app.use("/api/appointments", requireAuth, appointmentsRouter);
 
 app.get("/login", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/login.html"));
@@ -52,6 +55,7 @@ app.use(errorHandler);
 async function start() {
   db.connect();
   await db.migrate();
+  startReminderScheduler();
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }

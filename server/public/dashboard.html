@@ -140,6 +140,7 @@
     <div class="tab" onclick="switchTab('inbox')">Inbox <span id="inboxBadge" style="display:none;background:#f59e0b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></div>
     <div class="tab" onclick="switchTab('tickets')">Tickets <span id="ticketsBadge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></div>
     <div class="tab" onclick="switchTab('settings')">Settings</div>
+    <div class="tab" onclick="switchTab('appointments')">Appointments</div>
     <div class="tab" onclick="switchTab('billing')">Billing</div>
   </div>
 
@@ -180,6 +181,42 @@
       </div>
       <div id="ticketList"><div class="empty-state">Loading...</div></div>
       <p class="refresh-note">Auto-refreshes every 30 seconds</p>
+    </div>
+  </div>
+
+  <!-- Appointments tab -->
+  <div class="tab-panel" id="tab-appointments">
+    <div class="card">
+      <h2>Book Appointment</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Customer WhatsApp Number</label>
+          <input type="text" id="apptNumber" placeholder="+447911123456" />
+        </div>
+        <div class="form-group">
+          <label>Customer Name (optional)</label>
+          <input type="text" id="apptName" placeholder="Jane Smith" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Appointment Date &amp; Time</label>
+          <input type="datetime-local" id="apptDate" />
+        </div>
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <input type="text" id="apptNotes" placeholder="e.g. Bring previous records" />
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="btn-save" onclick="bookAppointment()">Book &amp; Schedule Reminders</button>
+        <span id="apptMsg" class="save-msg"></span>
+      </div>
+      <p style="font-size:12px;color:#64748b;margin-top:10px;">WhatsApp reminders will be sent automatically 24h and 2h before the appointment.</p>
+    </div>
+    <div class="card">
+      <h2>Upcoming Appointments</h2>
+      <div id="apptList"><div class="empty-state">Loading...</div></div>
     </div>
   </div>
 
@@ -441,7 +478,7 @@
   // Tab switching
   function switchTab(name) {
     document.querySelectorAll(".tab").forEach((t, i) => {
-      t.classList.toggle("active", ["overview","inbox","tickets","settings","billing"][i] === name);
+      t.classList.toggle("active", ["overview","inbox","tickets","settings","appointments","billing"][i] === name);
     });
     document.querySelectorAll(".tab-panel").forEach(p => {
       p.classList.toggle("active", p.id === "tab-" + name);
@@ -449,6 +486,7 @@
     if (name === "settings") loadSettings();
     if (name === "inbox") loadInbox();
     if (name === "tickets") loadTickets("open");
+    if (name === "appointments") loadAppointments();
     if (name === "billing") loadBillingStatus();
   }
 
@@ -681,6 +719,77 @@
       body: JSON.stringify({ status }),
     });
     loadTickets(ticketStatus);
+  }
+
+  // Appointments
+  async function bookAppointment() {
+    const number = document.getElementById("apptNumber").value.trim();
+    const name   = document.getElementById("apptName").value.trim();
+    const date   = document.getElementById("apptDate").value;
+    const notes  = document.getElementById("apptNotes").value.trim();
+    const msg    = document.getElementById("apptMsg");
+
+    if (!number || !date) { msg.textContent = "Number and date are required"; msg.className = "save-msg err"; return; }
+
+    try {
+      const res = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerNumber: number, customerName: name, appointmentAt: date, notes }),
+      });
+      const data = await res.json();
+      if (!res.ok) { msg.textContent = data.error || "Failed"; msg.className = "save-msg err"; return; }
+      msg.textContent = "Appointment booked! Reminders will be sent automatically.";
+      msg.className = "save-msg ok";
+      document.getElementById("apptNumber").value = "";
+      document.getElementById("apptName").value = "";
+      document.getElementById("apptDate").value = "";
+      document.getElementById("apptNotes").value = "";
+      setTimeout(() => msg.textContent = "", 4000);
+      loadAppointments();
+    } catch {
+      msg.textContent = "Network error"; msg.className = "save-msg err";
+    }
+  }
+
+  async function cancelAppointment(id) {
+    if (!confirm("Cancel this appointment?")) return;
+    await fetch(`/api/appointments/${id}`, { method: "DELETE" });
+    loadAppointments();
+  }
+
+  async function loadAppointments() {
+    const list = document.getElementById("apptList");
+    try {
+      const res = await fetch("/api/appointments");
+      const appts = await res.json();
+      if (!appts.length) {
+        list.innerHTML = '<div class="empty-state">No upcoming appointments.</div>';
+        return;
+      }
+      list.innerHTML = `
+        <table>
+          <thead><tr><th>Date &amp; Time</th><th>Customer</th><th>Number</th><th>Notes</th><th>Reminders</th><th></th></tr></thead>
+          <tbody>
+            ${appts.map(a => `
+              <tr>
+                <td>${new Date(a.appointment_at).toLocaleString("en-GB", { weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })}</td>
+                <td>${escHtml(a.customer_name || "—")}</td>
+                <td>${a.customer_number}</td>
+                <td>${escHtml(a.notes || "—")}</td>
+                <td>
+                  <span style="font-size:12px;">
+                    24h: ${a.reminder_24h_sent_at ? "✅ Sent" : "⏳ Pending"}<br>
+                    2h: ${a.reminder_2h_sent_at ? "✅ Sent" : "⏳ Pending"}
+                  </span>
+                </td>
+                <td><button class="btn-resolve" onclick="cancelAppointment(${a.id})">Cancel</button></td>
+              </tr>`).join("")}
+          </tbody>
+        </table>`;
+    } catch (err) {
+      list.innerHTML = '<div class="empty-state">Failed to load appointments.</div>';
+    }
   }
 
   // Billing

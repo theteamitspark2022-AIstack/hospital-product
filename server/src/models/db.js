@@ -133,6 +133,20 @@ async function migrate() {
       updated_at        TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS appointments (
+      id                    SERIAL PRIMARY KEY,
+      business_id           VARCHAR(64),
+      customer_number       VARCHAR(32) NOT NULL,
+      customer_name         VARCHAR(128),
+      appointment_at        TIMESTAMPTZ NOT NULL,
+      notes                 TEXT,
+      status                VARCHAR(16) DEFAULT 'confirmed',
+      reminder_24h_sent_at  TIMESTAMPTZ,
+      reminder_2h_sent_at   TIMESTAMPTZ,
+      created_at            TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
   console.log("DB migration complete");
 }
 
