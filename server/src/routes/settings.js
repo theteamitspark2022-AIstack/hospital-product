@@ -9,6 +9,7 @@ const REQUIRED_TOKENS = {
 
 // GET /api/settings — load current settings
 router.get("/", async (req, res) => {
+  const businessId = req.auth?.businessId;
   const defaults = {
     businessName: config.hospital.name,
     callbackNumber: config.hospital.phone,
@@ -20,7 +21,9 @@ router.get("/", async (req, res) => {
   if (!db.isConnected()) return res.json(defaults);
 
   try {
-    const { rows } = await db.query("SELECT * FROM settings WHERE id = 'default'");
+    const { rows } = await db.query(
+      "SELECT * FROM settings WHERE business_id = $1 LIMIT 1", [businessId]
+    );
     if (!rows.length) return res.json(defaults);
     const s = rows[0];
     res.json({
@@ -38,9 +41,9 @@ router.get("/", async (req, res) => {
 
 // POST /api/settings — save settings
 router.post("/", async (req, res) => {
+  const businessId = req.auth?.businessId;
   const { businessName, callbackNumber, sector, country, missedCallTemplate } = req.body;
 
-  // AC3: validate required tokens
   const missing = REQUIRED_TOKENS.missed_call.filter(t => !missedCallTemplate.includes(t));
   if (missing.length) {
     return res.status(400).json({ error: `Missing required tokens: ${missing.join(", ")}` });
@@ -50,12 +53,12 @@ router.post("/", async (req, res) => {
 
   try {
     await db.query(
-      `INSERT INTO settings (id, business_name, callback_number, sector, country, missed_call_template)
-       VALUES ('default', $1, $2, $3, $4, $5)
+      `INSERT INTO settings (id, business_id, business_name, callback_number, sector, country, missed_call_template)
+       VALUES ($1, $1, $2, $3, $4, $5, $6)
        ON CONFLICT (id) DO UPDATE SET
-         business_name = $1, callback_number = $2, sector = $3,
-         country = $4, missed_call_template = $5, updated_at = NOW()`,
-      [businessName, callbackNumber, sector, country, missedCallTemplate]
+         business_name = $2, callback_number = $3, sector = $4,
+         country = $5, missed_call_template = $6, updated_at = NOW()`,
+      [businessId, businessName, callbackNumber, sector, country, missedCallTemplate]
     );
     res.json({ ok: true });
   } catch (err) {

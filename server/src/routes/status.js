@@ -6,14 +6,15 @@ const config = require("../../config");
 
 // GET /api/status — business status + checklist state
 router.get("/", async (req, res) => {
+  const businessId = req.auth?.businessId;
   let isLive = false;
   let callCount = 0;
 
   if (db.isConnected()) {
     try {
-      const biz = await db.query("SELECT is_live FROM businesses WHERE id = $1", ["default"]);
+      const biz = await db.query("SELECT is_live FROM businesses WHERE id = $1", [businessId]);
       if (biz.rows.length) isLive = biz.rows[0].is_live;
-      const calls = await db.query("SELECT COUNT(*) FROM calls");
+      const calls = await db.query("SELECT COUNT(*) FROM calls WHERE business_id = $1", [businessId]);
       callCount = parseInt(calls.rows[0].count);
     } catch (err) {
       console.error("Status query failed:", err.message);
@@ -42,11 +43,11 @@ router.get("/", async (req, res) => {
 
 // POST /api/status/golive — mark business as live
 router.post("/golive", async (req, res) => {
+  const businessId = req.auth?.businessId;
   if (db.isConnected()) {
     try {
       await db.query(
-        `INSERT INTO businesses (id, is_live) VALUES ('default', true)
-         ON CONFLICT (id) DO UPDATE SET is_live = true`
+        "UPDATE businesses SET is_live = true WHERE id = $1", [businessId]
       );
     } catch (err) {
       console.error("Go-live failed:", err.message);
@@ -56,9 +57,10 @@ router.post("/golive", async (req, res) => {
   res.json({ isLive: true });
 });
 
-// GET /api/status/calls — paginated call log
+// GET /api/status/calls — paginated call log scoped to business
 router.get("/calls", async (req, res) => {
-  const calls = await callService.getCalls({ limit: 20 });
+  const businessId = req.auth?.businessId;
+  const calls = await callService.getCalls({ limit: 20, businessId });
   res.json(calls);
 });
 

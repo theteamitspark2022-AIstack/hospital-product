@@ -42,6 +42,7 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   if (!db.isConnected()) return res.json([]);
   const status = req.query.status || "open";
+  const businessId = req.auth?.businessId;
   try {
     const { rows } = await db.query(
       `SELECT *,
@@ -49,8 +50,9 @@ router.get("/", async (req, res) => {
         CASE WHEN sla_resolve_at  < NOW() AND status != 'resolved' THEN true ELSE false END AS resolve_breached
        FROM tickets
        WHERE status = $1
+         AND ($2::varchar IS NULL OR business_id = $2)
        ORDER BY priority ASC, created_at ASC`,
-      [status]
+      [status, businessId || null]
     );
     res.json(rows);
   } catch (err) {

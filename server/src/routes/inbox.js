@@ -6,12 +6,12 @@ const { detectKeyword, getAutoReply } = require("../services/buddyService");
 
 const COMPLAINT_REGEX = /\b(complaint|complain|unhappy|not happy|wrong|mistake|error|terrible|awful|disgusting|refund|rude|unacceptable)\b/i;
 
-async function autoRaiseTicket(convId, customerNumber, body) {
+async function autoRaiseTicket(convId, customerNumber, body, businessId) {
   try {
     await db.query(
-      `INSERT INTO tickets (conversation_id, customer_number, description, priority, sla_response_at, sla_resolve_at)
-       VALUES ($1, $2, $3, 'P1', NOW() + INTERVAL '30 minutes', NOW() + INTERVAL '4 hours')`,
-      [convId, customerNumber, `Auto-raised: customer message contained complaint keywords.\n\nMessage: "${body}"`]
+      `INSERT INTO tickets (conversation_id, customer_number, description, priority, sla_response_at, sla_resolve_at, business_id)
+       VALUES ($1, $2, $3, 'P1', NOW() + INTERVAL '30 minutes', NOW() + INTERVAL '4 hours', $4)`,
+      [convId, customerNumber, `Auto-raised: customer message contained complaint keywords.\n\nMessage: "${body}"`, businessId]
     );
     console.log(`Auto-ticket raised for ${customerNumber}`);
   } catch (err) {
@@ -27,12 +27,23 @@ function toAddress(number) {
   return CHANNEL === "whatsapp" ? `whatsapp:${number}` : number;
 }
 
-async function getBusinessSettings() {
+async function getBusinessSettings(businessId) {
   if (!db.isConnected()) return {};
   try {
-    const { rows } = await db.query("SELECT business_name, sector FROM settings WHERE id = 'default'");
+    const q = businessId
+      ? "SELECT business_name, sector FROM settings WHERE business_id = $1 LIMIT 1"
+      : "SELECT business_name, sector FROM settings LIMIT 1";
+    const { rows } = await db.query(q, businessId ? [businessId] : []);
     return rows[0] || {};
   } catch { return {}; }
+}
+
+async function getDefaultBusinessId() {
+  if (!db.isConnected()) return null;
+  try {
+    const { rows } = await db.query("SELECT id FROM businesses ORDER BY created_at ASC LIMIT 1");
+    return rows[0]?.id || null;
+  } catch { return null; }
 }
 
 async function sendWhatsApp(to, body) {
@@ -51,19 +62,20 @@ router.post("/inbound", async (req, res) => {
 
   const customerNumber = From.replace("whatsapp:", "");
   const keyword = detectKeyword(Body);
+  const businessId = await getDefaultBusinessId();
 
   if (db.isConnected()) {
     try {
       // Upsert conversation — set opt_in on first message
       await db.query(
-        `INSERT INTO conversations (customer_number, status, last_message, last_message_at, opt_in_whatsapp, opt_in_at)
-         VALUES ($1, 'open', $2, NOW(), true, NOW())
+        `INSERT INTO conversations (customer_number, status, last_message, last_message_at, opt_in_whatsapp, opt_in_at, business_id)
+         VALUES ($1, 'open', $2, NOW(), true, NOW(), $3)
          ON CONFLICT (customer_number) DO UPDATE SET
            last_message = $2, last_message_at = NOW(),
            status = CASE WHEN conversations.status = 'resolved' THEN 'open' ELSE conversations.status END,
            opt_in_whatsapp = true,
            opt_in_at = COALESCE(conversations.opt_in_at, NOW())`,
-        [customerNumber, Body]
+        [customerNumber, Body, businessId]
       );
 
       const { rows } = await db.query(
@@ -130,11 +142,11 @@ router.post("/inbound", async (req, res) => {
         } else {
           // Auto-raise P1 ticket for complaint keywords
           if (COMPLAINT_REGEX.test(Body)) {
-            await autoRaiseTicket(convId, customerNumber, Body);
+            await autoRaiseTicket(convId, customerNumber, Body, businessId);
           }
 
           // Free-text — Buddy AI reply (in addition to ack already sent)
-          const settings = await getBusinessSettings();
+          const settings = await getBusinessSettings(businessId);
           const aiReply = await getAutoReply(Body, settings.business_name, settings.sector);
           if (aiReply) {
             const sid = await sendWhatsApp(customerNumber, aiReply);
@@ -157,6 +169,7 @@ router.post("/inbound", async (req, res) => {
 // GET /api/inbox — list open threads sorted by wait time
 router.get("/", async (req, res) => {
   if (!db.isConnected()) return res.json([]);
+  const businessId = req.auth?.businessId;
   try {
     const { rows } = await db.query(`
       SELECT c.id, c.customer_number, c.status, c.last_message, c.last_message_at,
@@ -164,8 +177,9 @@ router.get("/", async (req, res) => {
              (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count
       FROM conversations c
       WHERE c.status = 'open'
+        AND ($1::varchar IS NULL OR c.business_id = $1)
       ORDER BY c.last_message_at ASC
-    `);
+    `, [businessId || null]);
     res.json(rows);
   } catch (err) {
     console.error("Inbox list failed:", err.message);
