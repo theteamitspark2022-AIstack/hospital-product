@@ -6,140 +6,157 @@
   <title>Superadmin — AIVoiceConnect</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #F8FAFC; color: #020817; font-size: 14px; -webkit-font-smoothing: antialiased; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #F1F5F9; color: #020817; font-size: 14px; -webkit-font-smoothing: antialiased; }
 
-    header { background: linear-gradient(135deg, #020817, #0a1628); color: #fff; padding: 0 32px; height: 56px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-    .header-brand { display: flex; align-items: center; gap: 12px; }
-    .header-brand img { height: 28px; width: auto; }
-    .header-brand .divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); }
-    .header-brand span { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); }
-    .sa-badge { background: #EF4444; color: #fff; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
-    .btn-signout { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; }
-    .btn-signout:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    /* ── Header ── */
+    header { background: linear-gradient(135deg, #020817 0%, #0a1628 100%); color: #fff; padding: 0 28px; height: 56px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .hbrand { display: flex; align-items: center; gap: 12px; }
+    .hbrand img { height: 26px; width: auto; }
+    .hdivider { width: 1px; height: 18px; background: rgba(255,255,255,0.18); }
+    .hname { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.65); }
+    .sabadge { background: #EF4444; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: .07em; }
+    .hright { display: flex; align-items: center; gap: 12px; }
+    .hlastupdate { font-size: 11px; color: rgba(255,255,255,0.4); }
+    .btn-so { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.14); padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn-so:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
-    main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 80px; }
+    /* ── Layout ── */
+    main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
 
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .stat-card { background: #fff; border-radius: 12px; padding: 18px 20px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-    .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748B; margin-bottom: 8px; }
-    .stat-value { font-size: 30px; font-weight: 800; color: #020817; line-height: 1; font-variant-numeric: tabular-nums; }
+    /* ── Stats ── */
+    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px,1fr)); gap: 10px; margin-bottom: 20px; }
+    .stat { background: #fff; border-radius: 10px; padding: 16px 18px; border: 1px solid #E2E8F0; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .stat-lbl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #94A3B8; margin-bottom: 6px; }
+    .stat-val { font-size: 28px; font-weight: 800; color: #020817; line-height: 1; font-variant-numeric: tabular-nums; }
 
-    .card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
-    .card-header { padding: 16px 24px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; }
-    .card-header h2 { font-size: 15px; font-weight: 700; color: #0F172A; }
+    /* ── Card ── */
+    .card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,.05); overflow: hidden; }
+    .card-hdr { padding: 14px 20px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; }
+    .card-hdr h2 { font-size: 15px; font-weight: 700; color: #0F172A; }
 
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 900px; }
-    th { text-align: left; padding: 10px 14px; font-size: 11px; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; border-bottom: 1px solid #E2E8F0; background: #F8FAFC; white-space: nowrap; }
-    td { padding: 12px 14px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+    /* ── Table ── */
+    .twrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+    th { text-align: left; padding: 9px 12px; font-size: 10px; color: #94A3B8; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; border-bottom: 1px solid #E2E8F0; background: #F8FAFC; white-space: nowrap; }
+    td { padding: 11px 12px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #FAFBFC; }
 
-    .biz-name { font-weight: 700; color: #0F172A; font-size: 14px; }
-    .biz-email { font-size: 12px; color: #64748B; margin-top: 2px; }
-    .biz-id { font-size: 10px; color: #CBD5E1; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .bname { font-weight: 700; color: #0F172A; font-size: 14px; }
+    .bemail { font-size: 11px; color: #64748B; margin-top: 2px; }
+    .bid { font-size: 10px; color: #CBD5E1; margin-top: 1px; font-variant-numeric: tabular-nums; }
 
-    .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
-    .plan-trial   { background: #F1F5F9; color: #64748B; }
-    .plan-starter { background: #EEF2FF; color: #4F46E5; }
-    .plan-growth  { background: #EFF6FF; color: #2563EB; }
-    .plan-pro     { background: #F0FDF4; color: #16A34A; }
-    .status-active    { background: #F0FDF4; color: #16A34A; }
-    .status-trial     { background: #FFFBEB; color: #B45309; }
-    .status-suspended { background: #FEF2F2; color: #DC2626; }
+    /* ── Badges ── */
+    .badge { padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; white-space: nowrap; }
+    .p-trial   { background:#F1F5F9; color:#64748B; }
+    .p-starter { background:#EEF2FF; color:#4F46E5; }
+    .p-growth  { background:#EFF6FF; color:#2563EB; }
+    .p-pro     { background:#F0FDF4; color:#16A34A; }
+    .s-active    { background:#F0FDF4; color:#16A34A; }
+    .s-trial     { background:#FFFBEB; color:#B45309; }
+    .s-suspended { background:#FEF2F2; color:#DC2626; }
 
-    .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
-    .live-dot.on { background: #22C55E; } .live-dot.off { background: #CBD5E1; }
+    /* ── Inline plan select ── */
+    .plan-sel { padding: 4px 6px; border: 1px solid #E2E8F0; border-radius: 6px; font-size: 12px; font-family: inherit; color: #0F172A; background: #fff; cursor: pointer; }
+    .plan-sel:focus { outline: none; border-color: #3182ED; }
 
-    /* Action buttons */
-    .actions { display: flex; gap: 6px; flex-wrap: nowrap; }
-    .btn { padding: 6px 12px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid; transition: all 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
-    .btn-primary  { background: #3182ED; color: #fff; border-color: #3182ED; }
-    .btn-primary:hover  { background: #1368D8; }
-    .btn-warning  { background: #FFFBEB; color: #B45309; border-color: #FCD34D; }
-    .btn-warning:hover  { background: #FCD34D; color: #92400E; }
-    .btn-success  { background: #F0FDF4; color: #16A34A; border-color: #BBF7D0; }
-    .btn-success:hover  { background: #16A34A; color: #fff; }
-    .btn-danger   { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
-    .btn-danger:hover   { background: #DC2626; color: #fff; }
-    .btn-neutral  { background: #F8FAFC; color: #334155; border-color: #E2E8F0; }
-    .btn-neutral:hover  { background: #E2E8F0; }
+    /* ── Live toggle ── */
+    .toggle { position: relative; display: inline-block; width: 36px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background: #CBD5E1; border-radius: 20px; transition: .2s; }
+    .slider:before { content:""; position:absolute; width:14px; height:14px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s; }
+    input:checked + .slider { background: #22C55E; }
+    input:checked + .slider:before { transform: translateX(16px); }
 
-    /* Top bar */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .top-bar h1 { font-size: 20px; font-weight: 800; color: #0F172A; }
-    .btn-add-biz { background: linear-gradient(135deg, #3182ED, #1368D8); color: #fff; border: none; padding: 10px 20px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(49,130,237,0.3); }
-    .btn-add-biz:hover { opacity: 0.9; }
+    /* ── Buttons ── */
+    .btn { padding: 5px 11px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid; transition: all .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; font-family: inherit; }
+    .b-primary { background:#3182ED; color:#fff; border-color:#3182ED; }
+    .b-primary:hover { background:#1368D8; }
+    .b-save    { background:#EFF6FF; color:#2563EB; border-color:#BFDBFE; }
+    .b-save:hover { background:#2563EB; color:#fff; }
+    .b-users   { background:#F8FAFC; color:#334155; border-color:#E2E8F0; }
+    .b-users:hover { background:#E2E8F0; }
+    .b-warn    { background:#FFFBEB; color:#B45309; border-color:#FCD34D; }
+    .b-warn:hover { background:#F59E0B; color:#fff; }
+    .b-green   { background:#F0FDF4; color:#16A34A; border-color:#BBF7D0; }
+    .b-green:hover { background:#16A34A; color:#fff; }
+    .b-danger  { background:#FEF2F2; color:#DC2626; border-color:#FECACA; }
+    .b-danger:hover { background:#DC2626; color:#fff; }
 
-    /* Modals */
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
-    .overlay.open { display: flex; }
-    .modal { background: #fff; border-radius: 14px; padding: 28px; width: 100%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
-    .modal h3 { font-size: 16px; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
-    .modal-sub { font-size: 13px; color: #64748B; margin-bottom: 20px; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #334155; margin-bottom: 5px; }
-    .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 14px; font-family: inherit; color: #020817; outline: none; transition: border-color 0.15s; }
-    .form-group input:focus, .form-group select:focus { border-color: #3182ED; box-shadow: 0 0 0 3px #EBF4FF; }
-    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
-    .modal-error { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; display: none; }
-    .modal-error.visible { display: block; }
+    .actions { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
 
-    /* Users list in modal */
-    .user-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; max-height: 280px; overflow-y: auto; }
-    .user-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #F8FAFC; border-radius: 8px; border: 1px solid #E2E8F0; }
-    .user-email { font-size: 13px; font-weight: 500; color: #0F172A; }
-    .user-meta { font-size: 11px; color: #94A3B8; margin-top: 2px; }
-    .role-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
-    .role-owner { background: #EEF2FF; color: #4F46E5; }
-    .role-agent { background: #F1F5F9; color: #64748B; }
+    .btn-addbiz { background: linear-gradient(135deg,#3182ED,#1368D8); color:#fff; border:none; padding:9px 18px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(49,130,237,0.28); font-family:inherit; }
+    .btn-addbiz:hover { opacity:.9; }
 
-    .empty { text-align: center; padding: 40px 24px; color: #94A3B8; font-size: 13px; }
-    .toast { position: fixed; bottom: 24px; right: 24px; background: #0F172A; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; display: none; z-index: 300; box-shadow: 0 4px 14px rgba(0,0,0,0.2); }
-    .toast.ok { background: #16A34A; } .toast.err { background: #DC2626; }
-    .toast.visible { display: block; }
+    /* ── Modals ── */
+    .overlay { display:none; position:fixed; inset:0; background:rgba(2,8,23,.5); z-index:200; align-items:center; justify-content:center; padding:20px; }
+    .overlay.open { display:flex; }
+    .modal { background:#fff; border-radius:14px; padding:26px; width:100%; max-width:460px; box-shadow:0 24px 64px rgba(0,0,0,.22); max-height:90vh; overflow-y:auto; }
+    .modal h3 { font-size:16px; font-weight:800; color:#0F172A; margin-bottom:4px; }
+    .msub { font-size:13px; color:#64748B; margin-bottom:18px; }
+    .fg { margin-bottom:14px; }
+    .fg label { display:block; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#475569; margin-bottom:4px; }
+    .fg input, .fg select { width:100%; padding:9px 11px; border:1px solid #E2E8F0; border-radius:7px; font-size:14px; font-family:inherit; color:#020817; outline:none; transition:border-color .15s; }
+    .fg input:focus, .fg select:focus { border-color:#3182ED; box-shadow:0 0 0 3px #EBF4FF; }
+    .mactions { display:flex; gap:8px; justify-content:flex-end; margin-top:18px; }
+    .merr { background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; border-radius:7px; padding:9px 12px; font-size:13px; margin-bottom:14px; display:none; }
+    .merr.on { display:block; }
 
-    @media (max-width: 640px) { header { padding: 0 16px; } main { padding: 16px 12px; } }
+    /* ── User list in modal ── */
+    .ulist { display:flex; flex-direction:column; gap:7px; margin-bottom:18px; max-height:260px; overflow-y:auto; }
+    .urow { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:#F8FAFC; border-radius:7px; border:1px solid #E2E8F0; }
+    .uemail { font-size:13px; font-weight:500; color:#0F172A; }
+    .umeta { font-size:10px; color:#94A3B8; margin-top:1px; }
+    .rbadge { font-size:10px; font-weight:800; padding:2px 7px; border-radius:9px; }
+    .r-owner { background:#EEF2FF; color:#4F46E5; }
+    .r-agent { background:#F1F5F9; color:#64748B; }
+    .r-superadmin { background:#FEF2F2; color:#DC2626; }
+
+    .empty { text-align:center; padding:36px; color:#94A3B8; font-size:13px; }
+    .toast { position:fixed; bottom:22px; right:22px; background:#0F172A; color:#fff; padding:11px 18px; border-radius:9px; font-size:13px; font-weight:500; display:none; z-index:400; box-shadow:0 4px 14px rgba(0,0,0,.2); }
+    .toast.ok { background:#16A34A; } .toast.err { background:#DC2626; }
+    .toast.on { display:block; }
+
+    .sep { border:none; border-top:1px solid #E2E8F0; margin:16px 0; }
+    .sec-title { font-size:12px; font-weight:700; color:#0F172A; margin-bottom:10px; }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="header-brand">
-    <img src="/logo.webp" alt="TheTeam ITSpark" />
-    <div class="divider"></div>
-    <span>AIVoiceConnect</span>
-    <span class="sa-badge">SUPERADMIN</span>
+  <div class="hbrand">
+    <img src="/logo.webp" alt="ITSpark" />
+    <div class="hdivider"></div>
+    <span class="hname">AIVoiceConnect</span>
+    <span class="sabadge">SUPERADMIN</span>
   </div>
-  <button class="btn-signout" onclick="signOut()">Sign Out</button>
+  <div class="hright">
+    <span class="hlastupdate" id="lastUpdate"></span>
+    <button class="btn-so" onclick="signOut()">Sign Out</button>
+  </div>
 </header>
 
 <main>
-  <div class="top-bar">
-    <h1>Platform Overview</h1>
-    <button class="btn-add-biz" onclick="openModal('addBiz')">＋ Add Business</button>
-  </div>
-
   <!-- Stats -->
-  <div class="stats-grid">
-    <div class="stat-card"><div class="stat-label">Businesses</div><div class="stat-value" id="statBiz">—</div></div>
-    <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value" id="statUsers">—</div></div>
-    <div class="stat-card"><div class="stat-label">Total Calls</div><div class="stat-value" id="statCalls">—</div></div>
-    <div class="stat-card"><div class="stat-label">Tickets</div><div class="stat-value" id="statTickets">—</div></div>
-    <div class="stat-card"><div class="stat-label">Appointments</div><div class="stat-value" id="statAppts">—</div></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">Businesses</div><div class="stat-val" id="sBiz">—</div></div>
+    <div class="stat"><div class="stat-lbl">Users</div><div class="stat-val" id="sUsers">—</div></div>
+    <div class="stat"><div class="stat-lbl">Total Calls</div><div class="stat-val" id="sCalls">—</div></div>
+    <div class="stat"><div class="stat-lbl">Tickets</div><div class="stat-val" id="sTickets">—</div></div>
+    <div class="stat"><div class="stat-lbl">Appointments</div><div class="stat-val" id="sAppts">—</div></div>
   </div>
 
-  <!-- Businesses table -->
+  <!-- Businesses -->
   <div class="card">
-    <div class="card-header">
+    <div class="card-hdr">
       <h2>All Businesses</h2>
-      <small id="lastRefresh" style="font-size:12px;color:#94A3B8;"></small>
+      <button class="btn-addbiz" onclick="open_('addBiz')">＋ Add Business</button>
     </div>
-    <div class="table-wrap">
+    <div class="twrap">
       <table>
         <thead>
           <tr>
-            <th>Business / Owner</th>
+            <th>Business / Owner Email</th>
             <th>Plan</th>
             <th>Status</th>
             <th>Trial Ends</th>
@@ -148,10 +165,10 @@
             <th>Tickets</th>
             <th>Appts</th>
             <th>Live</th>
-            <th>Actions</th>
+            <th style="min-width:320px;">Actions</th>
           </tr>
         </thead>
-        <tbody id="bizTable">
+        <tbody id="bizTbl">
           <tr><td colspan="10" class="empty">Loading…</td></tr>
         </tbody>
       </table>
@@ -159,53 +176,56 @@
   </div>
 </main>
 
-<!-- ── Add Business Modal ── -->
-<div class="overlay" id="modal-addBiz">
+<!-- ── Add Business ── -->
+<div class="overlay" id="m-addBiz">
   <div class="modal">
     <h3>Add Business</h3>
-    <p class="modal-sub">Create a new business and owner account.</p>
-    <div class="modal-error" id="err-addBiz"></div>
-    <div class="form-group"><label>Business Name</label><input id="ab-name" placeholder="e.g. City Dental Clinic" /></div>
-    <div class="form-group"><label>Owner Email</label><input id="ab-email" type="email" placeholder="owner@example.com" /></div>
-    <div class="form-group"><label>Owner Password</label><input id="ab-pass" type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" /></div>
-    <div class="modal-actions">
-      <button class="btn btn-neutral" onclick="closeModal('addBiz')">Cancel</button>
-      <button class="btn btn-primary" onclick="addBusiness()">Create Business</button>
+    <p class="msub">Create a new business with an owner account.</p>
+    <div class="merr" id="e-addBiz"></div>
+    <div class="fg"><label>Business Name</label><input id="ab-name" placeholder="e.g. City Dental Clinic" /></div>
+    <div class="fg"><label>Owner Email</label><input id="ab-email" type="email" placeholder="owner@clinic.com" /></div>
+    <div class="fg"><label>Owner Password</label><input id="ab-pass" type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" /></div>
+    <div class="mactions">
+      <button class="btn b-users" onclick="close_('addBiz')">Cancel</button>
+      <button class="btn b-primary" onclick="addBusiness()">Create Business</button>
     </div>
   </div>
 </div>
 
-<!-- ── Users Modal (view + add team member + delete) ── -->
-<div class="overlay" id="modal-users">
+<!-- ── Team / Users Modal ── -->
+<div class="overlay" id="m-users">
   <div class="modal">
-    <h3 id="users-title">Team</h3>
-    <p class="modal-sub" id="users-sub"></p>
-    <div class="user-list" id="users-list"></div>
-    <hr style="border:none;border-top:1px solid #E2E8F0;margin-bottom:18px;" />
-    <p style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:12px;">Add Team Member</p>
-    <div class="modal-error" id="err-addMember"></div>
-    <div class="form-group"><label>Email</label><input id="tm-email" type="email" placeholder="agent@example.com" /></div>
-    <div class="form-group"><label>Password</label><input id="tm-pass" type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" /></div>
-    <div class="form-group">
+    <h3 id="ut-title">Team</h3>
+    <p class="msub" id="ut-sub"></p>
+
+    <p class="sec-title">Current Users</p>
+    <div class="ulist" id="ulist"></div>
+
+    <hr class="sep" />
+    <p class="sec-title">Add Team Member</p>
+    <div class="merr" id="e-addMember"></div>
+    <div class="fg"><label>Email</label><input id="tm-email" type="email" placeholder="agent@clinic.com" /></div>
+    <div class="fg"><label>Password</label><input id="tm-pass" type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" /></div>
+    <div class="fg">
       <label>Role</label>
       <select id="tm-role"><option value="agent">Agent</option><option value="owner">Owner</option></select>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-neutral" onclick="closeModal('users')">Close</button>
-      <button class="btn btn-primary" onclick="addTeamMember()">Add Member</button>
+    <div class="mactions">
+      <button class="btn b-users" onclick="close_('users')">Close</button>
+      <button class="btn b-primary" onclick="addMember()">Add Member</button>
     </div>
   </div>
 </div>
 
-<!-- ── Confirm Delete Modal ── -->
-<div class="overlay" id="modal-confirm">
+<!-- ── Confirm Delete ── -->
+<div class="overlay" id="m-confirm">
   <div class="modal">
-    <h3 style="color:#DC2626;">⚠ Delete Business</h3>
-    <p class="modal-sub" id="confirm-text"></p>
-    <p style="font-size:13px;color:#64748B;margin-bottom:20px;">This will permanently delete all users, calls, tickets, appointments and settings. This cannot be undone.</p>
-    <div class="modal-actions">
-      <button class="btn btn-neutral" onclick="closeModal('confirm')">Cancel</button>
-      <button class="btn btn-danger" id="confirm-delete-btn">Delete Everything</button>
+    <h3 style="color:#DC2626;">Delete Business</h3>
+    <p class="msub" id="cd-text"></p>
+    <p style="font-size:13px;color:#64748B;margin-bottom:18px;">This permanently deletes all users, calls, tickets, appointments and settings. <strong>This cannot be undone.</strong></p>
+    <div class="mactions">
+      <button class="btn b-users" onclick="close_('confirm')">Cancel</button>
+      <button class="btn b-danger" id="cd-btn">Delete Everything</button>
     </div>
   </div>
 </div>
@@ -213,214 +233,237 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let currentBizId = null;
+let activeBizId = null;
 
-  function showToast(msg, type = "") {
-    const t = document.getElementById("toast");
-    t.textContent = msg;
-    t.className = `toast visible ${type}`;
-    setTimeout(() => t.classList.remove("visible"), 2800);
-  }
+/* ── Modal helpers ── */
+function open_(id) { document.getElementById(`m-${id}`).classList.add("open"); }
+function close_(id) {
+  document.getElementById(`m-${id}`).classList.remove("open");
+  const e = document.getElementById(`e-${id}`);
+  if (e) { e.textContent = ""; e.classList.remove("on"); }
+}
+document.querySelectorAll(".overlay").forEach(o => o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); }));
 
-  function openModal(name) {
-    document.getElementById(`modal-${name}`).classList.add("open");
-  }
-  function closeModal(name) {
-    document.getElementById(`modal-${name}`).classList.remove("open");
-    // clear errors
-    const e = document.getElementById(`err-${name}`);
-    if (e) { e.textContent = ""; e.classList.remove("visible"); }
-  }
+/* ── Toast ── */
+function toast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast on" + (type ? " " + type : "");
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove("on"), 2800);
+}
 
-  function showErr(id, msg) {
-    const el = document.getElementById(id);
-    el.textContent = msg; el.classList.add("visible");
-  }
+function showErr(id, msg) {
+  const el = document.getElementById(`e-${id}`);
+  el.textContent = msg; el.classList.add("on");
+}
 
-  async function signOut() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/login";
-  }
+function signOut() {
+  fetch("/api/auth/logout", { method: "POST" }).finally(() => { window.location.href = "/login"; });
+}
 
-  async function loadStats() {
-    try {
-      const s = await fetch("/api/superadmin/stats").then(r => r.json());
-      document.getElementById("statBiz").textContent   = s.businesses;
-      document.getElementById("statUsers").textContent  = s.users;
-      document.getElementById("statCalls").textContent  = s.calls;
-      document.getElementById("statTickets").textContent = s.tickets;
-      document.getElementById("statAppts").textContent  = s.appointments;
-    } catch {}
-  }
+/* ── Helpers ── */
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "—"; }
+function statusClass(s) { return ({active:"s-active",trial:"s-trial",suspended:"s-suspended"})[s] || "s-trial"; }
+function roleClass(r) { return ({owner:"r-owner",agent:"r-agent",superadmin:"r-superadmin"})[r] || "r-agent"; }
+function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
 
-  function planClass(p) { return { trial:"plan-trial", starter:"plan-starter", growth:"plan-growth", pro:"plan-pro" }[p] || "plan-trial"; }
-  function statusClass(s) { return { active:"status-active", trial:"status-trial", suspended:"status-suspended" }[s] || "status-trial"; }
-  function fmtDate(d) { return d ? new Date(d).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" }) : "—"; }
+/* ── Stats ── */
+async function loadStats() {
+  try {
+    const s = await fetch("/api/superadmin/stats").then(r => r.json());
+    document.getElementById("sBiz").textContent    = s.businesses;
+    document.getElementById("sUsers").textContent  = s.users;
+    document.getElementById("sCalls").textContent  = s.calls;
+    document.getElementById("sTickets").textContent = s.tickets;
+    document.getElementById("sAppts").textContent  = s.appointments;
+  } catch {}
+}
 
-  async function loadBusinesses() {
-    const tbody = document.getElementById("bizTable");
-    try {
-      const list = await fetch("/api/superadmin/businesses").then(r => r.json());
-      document.getElementById("lastRefresh").textContent = "Updated " + new Date().toLocaleTimeString("en-GB");
-      if (!list.length) { tbody.innerHTML = `<tr><td colspan="10" class="empty">No businesses yet</td></tr>`; return; }
+/* ── Businesses ── */
+async function loadBusinesses() {
+  const tbody = document.getElementById("bizTbl");
+  try {
+    const list = await fetch("/api/superadmin/businesses").then(r => r.json());
+    document.getElementById("lastUpdate").textContent = "Updated " + new Date().toLocaleTimeString("en-GB");
 
-      tbody.innerHTML = list.map(b => {
-        const suspended = b.subscription_status === "suspended";
-        return `<tr>
-          <td>
-            <div class="biz-name">${b.name || "Unnamed"}</div>
-            <div class="biz-email">${b.owner_email || "—"}</div>
-            <div class="biz-id">${b.id}</div>
-          </td>
-          <td><span class="badge ${planClass(b.plan)}">${(b.plan||"trial").toUpperCase()}</span></td>
-          <td><span class="badge ${statusClass(b.subscription_status)}">${b.subscription_status||"trial"}</span></td>
-          <td>${fmtDate(b.trial_ends_at)}</td>
-          <td>
-            <button class="btn btn-neutral" style="font-size:12px;padding:4px 10px;" onclick="showUsers('${b.id}','${(b.name||"Unnamed").replace(/'/g,"\\'")}','${b.owner_email||""}')">
-              ${b.user_count} users
-            </button>
-          </td>
-          <td>${b.call_count}</td>
-          <td>${b.ticket_count}</td>
-          <td>${b.appointment_count}</td>
-          <td><span class="live-dot ${b.is_live ? 'on':'off'}"></span>${b.is_live ? "Live":"Off"}</td>
-          <td>
-            <div class="actions">
-              ${suspended
-                ? `<button class="btn btn-success" onclick="unsuspend('${b.id}')">✓ Unsuspend</button>`
-                : `<button class="btn btn-warning" onclick="suspend('${b.id}')">⏸ Suspend</button>`
-              }
-              <button class="btn btn-danger" onclick="confirmDelete('${b.id}','${(b.name||"Unnamed").replace(/'/g,"\\'")}')">🗑 Delete</button>
-            </div>
-          </td>
-        </tr>`;
-      }).join("");
-    } catch {
-      tbody.innerHTML = `<tr><td colspan="10" class="empty">Failed to load</td></tr>`;
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="10" class="empty">No businesses yet</td></tr>`;
+      return;
     }
+
+    tbody.innerHTML = list.map(b => {
+      const susp = b.subscription_status === "suspended";
+      const safeEmail = (b.owner_email || "").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+      const safeName  = (b.name || "Unnamed").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+      return `<tr>
+        <td>
+          <div class="bname">${esc(b.name || "Unnamed")}</div>
+          <div class="bemail">${esc(b.owner_email || "—")}</div>
+          <div class="bid">${b.id}</div>
+        </td>
+        <td>
+          <select class="plan-sel" id="plan-${b.id}">
+            <option value="trial"   ${b.plan==="trial"   ?"selected":""}>Trial</option>
+            <option value="starter" ${b.plan==="starter" ?"selected":""}>Starter</option>
+            <option value="growth"  ${b.plan==="growth"  ?"selected":""}>Growth</option>
+            <option value="pro"     ${b.plan==="pro"     ?"selected":""}>Pro</option>
+          </select>
+        </td>
+        <td><span class="badge ${statusClass(b.subscription_status)}">${b.subscription_status||"trial"}</span></td>
+        <td style="white-space:nowrap">${fmtDate(b.trial_ends_at)}</td>
+        <td>
+          <button class="btn b-users" onclick="showUsers('${b.id}','${safeName}','${safeEmail}')">
+            ${b.user_count} user${b.user_count==1?"":"s"}
+          </button>
+        </td>
+        <td>${b.call_count}</td>
+        <td>${b.ticket_count}</td>
+        <td>${b.appointment_count}</td>
+        <td>
+          <label class="toggle" title="${b.is_live?"Live — click to take offline":"Offline — click to go live"}">
+            <input type="checkbox" ${b.is_live?"checked":""} onchange="toggleLive('${b.id}',this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td>
+          <div class="actions">
+            <button class="btn b-save"  onclick="savePlan('${b.id}')">💾 Save Plan</button>
+            ${susp
+              ? `<button class="btn b-green" onclick="setSuspend('${b.id}',false)">✓ Unsuspend</button>`
+              : `<button class="btn b-warn"  onclick="setSuspend('${b.id}',true)">⏸ Suspend</button>`
+            }
+            <button class="btn b-danger" onclick="confirmDelete('${b.id}','${safeName}')">🗑 Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join("");
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="10" class="empty">Failed to load: ${err.message}</td></tr>`;
   }
+}
 
-  async function suspend(bizId) {
-    const res = await fetch(`/api/superadmin/businesses/${bizId}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subscription_status: "suspended", is_live: false }),
-    });
-    if (res.ok) { showToast("Business suspended", "err"); loadBusinesses(); loadStats(); }
-  }
-
-  async function unsuspend(bizId) {
-    const res = await fetch(`/api/superadmin/businesses/${bizId}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subscription_status: "trial", is_live: true }),
-    });
-    if (res.ok) { showToast("Business unsuspended", "ok"); loadBusinesses(); loadStats(); }
-  }
-
-  function confirmDelete(bizId, bizName) {
-    document.getElementById("confirm-text").textContent = `You are about to delete "${bizName}" and all its data.`;
-    document.getElementById("confirm-delete-btn").onclick = () => deleteBusiness(bizId);
-    openModal("confirm");
-  }
-
-  async function deleteBusiness(bizId) {
-    const res = await fetch(`/api/superadmin/businesses/${bizId}`, { method: "DELETE" });
-    if (res.ok) {
-      closeModal("confirm");
-      showToast("Business deleted", "err");
-      loadBusinesses(); loadStats();
-    } else {
-      showToast("Delete failed", "err");
-    }
-  }
-
-  async function addBusiness() {
-    const name  = document.getElementById("ab-name").value.trim();
-    const email = document.getElementById("ab-email").value.trim();
-    const pass  = document.getElementById("ab-pass").value;
-    if (!name || !email || !pass) return showErr("err-addBiz", "All fields are required");
-
-    const res = await fetch("/api/superadmin/businesses", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ businessName: name, ownerEmail: email, ownerPassword: pass }),
-    });
-    const data = await res.json();
-    if (!res.ok) return showErr("err-addBiz", data.error || "Failed to create business");
-
-    closeModal("addBiz");
-    document.getElementById("ab-name").value = "";
-    document.getElementById("ab-email").value = "";
-    document.getElementById("ab-pass").value = "";
-    showToast("Business created", "ok");
-    loadBusinesses(); loadStats();
-  }
-
-  async function showUsers(bizId, bizName, ownerEmail) {
-    currentBizId = bizId;
-    document.getElementById("users-title").textContent = bizName;
-    document.getElementById("users-sub").textContent = ownerEmail ? `Owner: ${ownerEmail}` : "";
-    document.getElementById("users-list").innerHTML = "<div style='color:#94A3B8;font-size:13px;padding:8px;'>Loading…</div>";
-    document.getElementById("err-addMember").textContent = "";
-    document.getElementById("err-addMember").classList.remove("visible");
-    openModal("users");
-    await refreshUserList(bizId);
-  }
-
-  async function refreshUserList(bizId) {
-    const list = document.getElementById("users-list");
-    try {
-      const users = await fetch(`/api/superadmin/businesses/${bizId}/users`).then(r => r.json());
-      list.innerHTML = users.length
-        ? users.map(u => `
-            <div class="user-row">
-              <div>
-                <div class="user-email">${u.email}</div>
-                <div class="user-meta">Joined ${fmtDate(u.created_at)}</div>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span class="role-badge ${u.role === 'owner' ? 'role-owner' : 'role-agent'}">${u.role}</span>
-                <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="removeUser(${u.id})">✕</button>
-              </div>
-            </div>`).join("")
-        : "<div style='color:#94A3B8;font-size:13px;padding:8px;'>No users</div>";
-    } catch {
-      list.innerHTML = "<div style='color:#DC2626;font-size:13px;padding:8px;'>Failed to load</div>";
-    }
-  }
-
-  async function removeUser(userId) {
-    if (!confirm("Remove this user?")) return;
-    const res = await fetch(`/api/superadmin/users/${userId}`, { method: "DELETE" });
-    if (res.ok) { showToast("User removed"); await refreshUserList(currentBizId); loadStats(); }
-    else showToast("Failed to remove user", "err");
-  }
-
-  async function addTeamMember() {
-    const email = document.getElementById("tm-email").value.trim();
-    const pass  = document.getElementById("tm-pass").value;
-    const role  = document.getElementById("tm-role").value;
-    if (!email || !pass) return showErr("err-addMember", "Email and password are required");
-
-    const res = await fetch(`/api/superadmin/businesses/${currentBizId}/team`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: pass, role }),
-    });
-    const data = await res.json();
-    if (!res.ok) return showErr("err-addMember", data.error || "Failed to add member");
-
-    document.getElementById("tm-email").value = "";
-    document.getElementById("tm-pass").value = "";
-    showToast("Team member added", "ok");
-    await refreshUserList(currentBizId); loadStats();
-  }
-
-  // Close overlay on background click
-  document.querySelectorAll(".overlay").forEach(o => {
-    o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+async function savePlan(bizId) {
+  const plan = document.getElementById(`plan-${bizId}`).value;
+  const res = await fetch(`/api/superadmin/businesses/${bizId}`, {
+    method: "PATCH", headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ plan }),
   });
+  if (res.ok) { toast("Plan saved", "ok"); loadBusinesses(); }
+  else toast("Failed to save plan", "err");
+}
 
-  loadStats();
-  loadBusinesses();
-  setInterval(() => { loadBusinesses(); loadStats(); }, 30000);
+async function toggleLive(bizId, on) {
+  const res = await fetch(`/api/superadmin/businesses/${bizId}`, {
+    method: "PATCH", headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ is_live: on }),
+  });
+  if (res.ok) toast(on ? "Business is now live" : "Business taken offline", "ok");
+  else { toast("Failed to update", "err"); loadBusinesses(); }
+}
+
+async function setSuspend(bizId, suspend) {
+  const body = suspend
+    ? { subscription_status: "suspended", is_live: false }
+    : { subscription_status: "trial",     is_live: true  };
+  const res = await fetch(`/api/superadmin/businesses/${bizId}`, {
+    method: "PATCH", headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(body),
+  });
+  if (res.ok) { toast(suspend ? "Business suspended" : "Business unsuspended", suspend ? "err" : "ok"); loadBusinesses(); loadStats(); }
+  else toast("Failed to update", "err");
+}
+
+function confirmDelete(bizId, bizName) {
+  document.getElementById("cd-text").textContent = `You are about to delete "${bizName}" and all its data.`;
+  document.getElementById("cd-btn").onclick = () => deleteBusiness(bizId);
+  open_("confirm");
+}
+
+async function deleteBusiness(bizId) {
+  const res = await fetch(`/api/superadmin/businesses/${bizId}`, { method: "DELETE" });
+  if (res.ok) { close_("confirm"); toast("Business deleted"); loadBusinesses(); loadStats(); }
+  else toast("Delete failed", "err");
+}
+
+async function addBusiness() {
+  const name  = document.getElementById("ab-name").value.trim();
+  const email = document.getElementById("ab-email").value.trim();
+  const pass  = document.getElementById("ab-pass").value;
+  if (!name || !email || !pass) return showErr("addBiz", "All fields are required");
+  const res = await fetch("/api/superadmin/businesses", {
+    method: "POST", headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ businessName: name, ownerEmail: email, ownerPassword: pass }),
+  });
+  const data = await res.json();
+  if (!res.ok) return showErr("addBiz", data.error || "Failed to create");
+  close_("addBiz");
+  ["ab-name","ab-email","ab-pass"].forEach(id => document.getElementById(id).value = "");
+  toast("Business created", "ok");
+  loadBusinesses(); loadStats();
+}
+
+/* ── Users modal ── */
+async function showUsers(bizId, bizName, ownerEmail) {
+  activeBizId = bizId;
+  document.getElementById("ut-title").textContent = bizName;
+  document.getElementById("ut-sub").textContent = ownerEmail ? "Owner: " + ownerEmail : "";
+  document.getElementById("ulist").innerHTML = "<div style='color:#94A3B8;font-size:13px;padding:6px'>Loading…</div>";
+  const e = document.getElementById("e-addMember");
+  e.textContent = ""; e.classList.remove("on");
+  ["tm-email","tm-pass"].forEach(id => document.getElementById(id).value = "");
+  open_("users");
+  await refreshUsers(bizId);
+}
+
+async function refreshUsers(bizId) {
+  const list = document.getElementById("ulist");
+  try {
+    const users = await fetch(`/api/superadmin/businesses/${bizId}/users`).then(r => r.json());
+    list.innerHTML = users.length ? users.map(u => `
+      <div class="urow">
+        <div>
+          <div class="uemail">${esc(u.email)}</div>
+          <div class="umeta">Joined ${fmtDate(u.created_at)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span class="rbadge ${roleClass(u.role)}">${u.role}</span>
+          <button class="btn b-danger" style="padding:2px 7px;font-size:11px" onclick="removeUser(${u.id})">✕</button>
+        </div>
+      </div>`).join("")
+    : "<div style='color:#94A3B8;font-size:13px;padding:6px'>No users</div>";
+  } catch {
+    list.innerHTML = "<div style='color:#DC2626;font-size:13px;padding:6px'>Failed to load</div>";
+  }
+}
+
+async function removeUser(userId) {
+  if (!confirm("Remove this user?")) return;
+  const res = await fetch(`/api/superadmin/users/${userId}`, { method: "DELETE" });
+  if (res.ok) { toast("User removed"); refreshUsers(activeBizId); loadStats(); }
+  else toast("Failed to remove", "err");
+}
+
+async function addMember() {
+  const email = document.getElementById("tm-email").value.trim();
+  const pass  = document.getElementById("tm-pass").value;
+  const role  = document.getElementById("tm-role").value;
+  if (!email || !pass) return showErr("addMember", "Email and password are required");
+  const res = await fetch(`/api/superadmin/businesses/${activeBizId}/team`, {
+    method: "POST", headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ email, password: pass, role }),
+  });
+  const data = await res.json();
+  if (!res.ok) return showErr("addMember", data.error || "Failed to add");
+  ["tm-email","tm-pass"].forEach(id => document.getElementById(id).value = "");
+  toast("Team member added", "ok");
+  refreshUsers(activeBizId); loadStats();
+}
+
+/* ── Init ── */
+loadStats();
+loadBusinesses();
+setInterval(() => { loadStats(); loadBusinesses(); }, 30000);
 </script>
 </body>
 </html>
