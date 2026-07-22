@@ -140,6 +140,7 @@
     <div class="tab" onclick="switchTab('inbox')">Inbox <span id="inboxBadge" style="display:none;background:#f59e0b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></div>
     <div class="tab" onclick="switchTab('tickets')">Tickets <span id="ticketsBadge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></div>
     <div class="tab" onclick="switchTab('settings')">Settings</div>
+    <div class="tab" onclick="switchTab('billing')">Billing</div>
   </div>
 
   <!-- Overview tab -->
@@ -179,6 +180,62 @@
       </div>
       <div id="ticketList"><div class="empty-state">Loading...</div></div>
       <p class="refresh-note">Auto-refreshes every 30 seconds</p>
+    </div>
+  </div>
+
+  <!-- Billing tab -->
+  <div class="tab-panel" id="tab-billing">
+    <div class="card" id="billingStatus">
+      <h2>Your Plan</h2>
+      <div id="billingInfo"><div class="empty-state">Loading...</div></div>
+    </div>
+    <div class="card">
+      <h2>Choose a Plan</h2>
+      <p style="font-size:13px;color:#64748b;margin-bottom:20px;">All plans include a <strong>14-day free trial</strong>. No card required to start — upgrade anytime.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+
+        <div style="border:2px solid #e2e8f0;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:18px;font-weight:700;">Starter</div>
+          <div style="font-size:28px;font-weight:800;color:#1a1a2e;">£49<span style="font-size:14px;font-weight:400;color:#64748b;">/mo</span></div>
+          <ul style="font-size:13px;color:#64748b;padding-left:16px;display:flex;flex-direction:column;gap:6px;">
+            <li>Up to 500 calls/month</li>
+            <li>1 user account</li>
+            <li>AI Voice + WhatsApp</li>
+            <li>Email support</li>
+          </ul>
+          <button class="btn-save" style="margin-top:auto;" onclick="startCheckout('starter')">Choose Starter</button>
+        </div>
+
+        <div style="border:2px solid #4f46e5;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;position:relative;">
+          <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#4f46e5;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:10px;">MOST POPULAR</div>
+          <div style="font-size:18px;font-weight:700;">Growth</div>
+          <div style="font-size:28px;font-weight:800;color:#4f46e5;">£99<span style="font-size:14px;font-weight:400;color:#64748b;">/mo</span></div>
+          <ul style="font-size:13px;color:#64748b;padding-left:16px;display:flex;flex-direction:column;gap:6px;">
+            <li>Up to 2,000 calls/month</li>
+            <li>5 user accounts</li>
+            <li>AI Voice + WhatsApp + Analytics</li>
+            <li>Priority email support</li>
+          </ul>
+          <button class="btn-save" style="margin-top:auto;background:#4f46e5;" onclick="startCheckout('growth')">Choose Growth</button>
+        </div>
+
+        <div style="border:2px solid #e2e8f0;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:18px;font-weight:700;">Pro</div>
+          <div style="font-size:28px;font-weight:800;color:#1a1a2e;">£199<span style="font-size:14px;font-weight:400;color:#64748b;">/mo</span></div>
+          <ul style="font-size:13px;color:#64748b;padding-left:16px;display:flex;flex-direction:column;gap:6px;">
+            <li>Unlimited calls</li>
+            <li>Unlimited users</li>
+            <li>White-label option</li>
+            <li>Dedicated support</li>
+          </ul>
+          <button class="btn-save" style="margin-top:auto;" onclick="startCheckout('pro')">Choose Pro</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Manage Subscription</h2>
+      <p style="font-size:13px;color:#64748b;margin-bottom:16px;">Update payment method, download invoices, or cancel your subscription via the Stripe billing portal.</p>
+      <button class="btn-save" onclick="openPortal()">Open Billing Portal</button>
     </div>
   </div>
 
@@ -384,7 +441,7 @@
   // Tab switching
   function switchTab(name) {
     document.querySelectorAll(".tab").forEach((t, i) => {
-      t.classList.toggle("active", ["overview","inbox","tickets","settings"][i] === name);
+      t.classList.toggle("active", ["overview","inbox","tickets","settings","billing"][i] === name);
     });
     document.querySelectorAll(".tab-panel").forEach(p => {
       p.classList.toggle("active", p.id === "tab-" + name);
@@ -392,6 +449,7 @@
     if (name === "settings") loadSettings();
     if (name === "inbox") loadInbox();
     if (name === "tickets") loadTickets("open");
+    if (name === "billing") loadBillingStatus();
   }
 
   // Inbox
@@ -623,6 +681,77 @@
       body: JSON.stringify({ status }),
     });
     loadTickets(ticketStatus);
+  }
+
+  // Billing
+  async function loadBillingStatus() {
+    const box = document.getElementById("billingInfo");
+    try {
+      const res = await fetch("/api/billing/status");
+      const data = await res.json();
+      const plan = (data.plan || "trial").charAt(0).toUpperCase() + (data.plan || "trial").slice(1);
+      const status = data.status || "no_subscription";
+      const statusLabel = {
+        trialing: "Free Trial",
+        active: "Active",
+        past_due: "Past Due",
+        canceled: "Canceled",
+        no_subscription: "No Subscription",
+      }[status] || status;
+
+      let detail = "";
+      if (data.trialEnd) detail = `Trial ends: <strong>${new Date(data.trialEnd).toLocaleDateString()}</strong>`;
+      else if (data.currentPeriodEnd) detail = `Next billing: <strong>${new Date(data.currentPeriodEnd).toLocaleDateString()}</strong>`;
+      else if (data.trialEndsAt) detail = `Trial ends: <strong>${new Date(data.trialEndsAt).toLocaleDateString()}</strong>`;
+
+      box.innerHTML = `
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:24px;font-weight:800;color:#1a1a2e;">${plan} Plan</div>
+            <div style="font-size:13px;color:#64748b;margin-top:2px;">${statusLabel}${detail ? " · " + detail : ""}</div>
+          </div>
+          ${data.cancelAtPeriodEnd ? '<div style="background:#fee2e2;color:#dc2626;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;">Cancels at period end</div>' : ""}
+        </div>`;
+    } catch {
+      box.innerHTML = '<div class="empty-state">Could not load billing status.</div>';
+    }
+  }
+
+  async function startCheckout(plan) {
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert(data.error || "Checkout failed");
+    } catch {
+      alert("Could not start checkout. Please try again.");
+    }
+  }
+
+  async function openPortal() {
+    try {
+      const res = await fetch("/api/billing/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) window.open(data.url, "_blank");
+      else alert(data.error || "Could not open portal");
+    } catch {
+      alert("Could not open billing portal. Please try again.");
+    }
+  }
+
+  // Handle return from Stripe Checkout
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("billing") === "success") {
+    switchTab("billing");
+    setTimeout(() => {
+      const info = document.getElementById("billingInfo");
+      if (info) info.innerHTML = '<div style="color:#16a34a;font-weight:600;padding:8px 0;">Payment successful! Your subscription is now active.</div>';
+    }, 500);
+    history.replaceState({}, "", "/dashboard");
   }
 
   async function raiseTicket(conversationId, customerNumber) {

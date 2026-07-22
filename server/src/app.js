@@ -12,9 +12,13 @@ const inboxRouter = require("./routes/inbox");
 const buddyRouter = require("./routes/buddy");
 const ticketsRouter = require("./routes/tickets");
 const authRouter = require("./routes/auth");
+const billingRouter = require("./routes/billing");
 const db = require("./models/db");
 
 const app = express();
+
+// Stripe webhook needs raw body — must be registered before express.json()
+app.use("/api/billing/webhook", express.raw({ type: "application/json" }), billingRouter);
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -31,6 +35,7 @@ app.use("/api/status", requireAuth, statusRouter);
 app.use("/api/settings", requireAuth, settingsRouter);
 app.use("/api/buddy", requireAuth, buddyRouter);
 app.use("/api/tickets", requireAuth, ticketsRouter);
+app.use("/api/billing", requireAuth, billingRouter);
 
 app.get("/login", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/login.html"));

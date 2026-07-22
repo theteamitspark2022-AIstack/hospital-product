@@ -61,6 +61,11 @@ async function migrate() {
     )
   `);
   await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS name VARCHAR(128)`).catch(() => {});
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(128)`).catch(() => {});
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(128)`).catch(() => {});
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS plan VARCHAR(32) DEFAULT 'trial'`).catch(() => {});
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(32) DEFAULT 'trial'`).catch(() => {});
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '14 days')`).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id            SERIAL PRIMARY KEY,
