@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../models/db");
+const { runReminderCheck } = require("../services/reminderService");
 
 // POST /api/appointments — book an appointment
 router.post("/", async (req, res) => {
@@ -54,6 +55,23 @@ router.delete("/:id", async (req, res) => {
       [req.params.id, businessId]
     );
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/appointments/test-reminder/:id — manually send reminder for testing
+router.post("/test-reminder/:id", async (req, res) => {
+  const businessId = req.auth?.businessId;
+  try {
+    const { rows } = await db.query(
+      "SELECT * FROM appointments WHERE id = $1 AND business_id = $2",
+      [req.params.id, businessId]
+    );
+    if (!rows.length) return res.status(404).json({ error: "Appointment not found" });
+    const { sendReminder } = require("../services/reminderService");
+    await sendReminder(rows[0], "24h");
+    res.json({ ok: true, message: "Test reminder sent" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

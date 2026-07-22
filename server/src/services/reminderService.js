@@ -70,4 +70,4 @@ function startReminderScheduler() {
   setInterval(runReminderCheck, 5 * 60 * 1000);
 }
 
-module.exports = { startReminderScheduler };
+module.exports = { startReminderScheduler, runReminderCheck, sendReminder };

@@ -752,6 +752,17 @@
     }
   }
 
+  async function testReminder(id) {
+    try {
+      const res = await fetch(`/api/appointments/test-reminder/${id}`, { method: "POST" });
+      const data = await res.json();
+      alert(res.ok ? "Test reminder sent! Check your WhatsApp." : (data.error || "Failed"));
+      if (res.ok) loadAppointments();
+    } catch {
+      alert("Network error");
+    }
+  }
+
   async function cancelAppointment(id) {
     if (!confirm("Cancel this appointment?")) return;
     await fetch(`/api/appointments/${id}`, { method: "DELETE" });
@@ -783,7 +794,10 @@
                     2h: ${a.reminder_2h_sent_at ? "✅ Sent" : "⏳ Pending"}
                   </span>
                 </td>
-                <td><button class="btn-resolve" onclick="cancelAppointment(${a.id})">Cancel</button></td>
+                <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn-resolve" onclick="testReminder(${a.id})">Send Test</button>
+                  <button class="btn-resolve" onclick="cancelAppointment(${a.id})">Cancel</button>
+                </td>
               </tr>`).join("")}
           </tbody>
         </table>`;
