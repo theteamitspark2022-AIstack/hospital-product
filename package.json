@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test:unit": "cd server && npm test",
+    "test:e2e": "npx playwright test",
+    "test:e2e:report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}

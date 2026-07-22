@@ -66,6 +66,8 @@ async function start() {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
-start();
+if (require.main === module) {
+  start();
+}
 
 module.exports = app;
