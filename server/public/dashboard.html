@@ -52,6 +52,34 @@
     .status-badge.ringing, .status-badge.in-progress { background: #fef9c3; color: #ca8a04; }
     .empty-state { text-align: center; color: #94a3b8; padding: 32px; font-size: 14px; }
     .refresh-note { font-size: 12px; color: #94a3b8; margin-top: 12px; text-align: right; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
+    .tab { padding: 10px 20px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .tab.active { color: #1a1a2e; border-bottom-color: #1a1a2e; }
+    .tab-panel { display: none; flex-direction: column; gap: 24px; }
+    .tab-panel.active { display: flex; }
+
+    /* Settings form */
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .form-group label { font-size: 13px; font-weight: 600; color: #334155; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px;
+      font-size: 14px; font-family: inherit; color: #1a1a2e; outline: none;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #3b82f6; }
+    .form-group textarea { resize: vertical; min-height: 120px; }
+    .token-hints { font-size: 12px; color: #64748b; margin-top: 4px; }
+    .token-hints code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .btn-save { background: #1a1a2e; color: #fff; border: none; padding: 11px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-save:hover { background: #334155; }
+    .btn-save:disabled { background: #94a3b8; cursor: default; }
+    .save-msg { font-size: 13px; margin-left: 12px; }
+    .save-msg.ok { color: #16a34a; }
+    .save-msg.err { color: #dc2626; }
+    .unsaved-banner { background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #92400e; display: none; margin-bottom: 16px; }
+    .unsaved-banner.visible { display: block; }
   </style>
 </head>
 <body>
@@ -65,19 +93,77 @@
 </header>
 
 <main>
-  <!-- Checklist card -->
-  <div class="card">
-    <h2>Onboarding Checklist</h2>
-    <div class="checklist" id="checklist">
-      <div class="empty-state">Loading...</div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('overview')">Overview</div>
+    <div class="tab" onclick="switchTab('settings')">Settings</div>
+  </div>
+
+  <!-- Overview tab -->
+  <div class="tab-panel active" id="tab-overview">
+    <div class="card">
+      <h2>Onboarding Checklist</h2>
+      <div class="checklist" id="checklist">
+        <div class="empty-state">Loading...</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Call Log</h2>
+      <div id="callLog"><div class="empty-state">Loading...</div></div>
+      <p class="refresh-note">Auto-refreshes every 30 seconds</p>
     </div>
   </div>
 
-  <!-- Call log card -->
-  <div class="card">
-    <h2>Call Log</h2>
-    <div id="callLog"><div class="empty-state">Loading...</div></div>
-    <p class="refresh-note">Auto-refreshes every 30 seconds</p>
+  <!-- Settings tab -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="card">
+      <h2>Business Settings</h2>
+      <div class="unsaved-banner" id="unsavedBanner">You have unsaved changes — don't forget to save.</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Business Name</label>
+          <input type="text" id="businessName" placeholder="e.g. TheTeam ITSpark" />
+        </div>
+        <div class="form-group">
+          <label>Call-back Number</label>
+          <input type="text" id="callbackNumber" placeholder="+14244764956" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sector</label>
+          <select id="sector">
+            <option>Healthcare</option>
+            <option>Beauty</option>
+            <option>Hospitality</option>
+            <option>Automotive</option>
+            <option>Legal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Country</label>
+          <select id="country">
+            <option>UK</option>
+            <option>India</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Message Template Editor</h2>
+      <div class="form-group">
+        <label>Missed Call Message</label>
+        <textarea id="missedCallTemplate"></textarea>
+        <div class="token-hints">
+          Required: <code>{HOSPITAL_NAME}</code> &nbsp;
+          Optional: <code>{MAPS}</code> <code>{WEBSITE}</code> <code>{WHATSAPP}</code> <code>{BOOKING}</code>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;">
+        <button class="btn-save" id="saveBtn" onclick="saveSettings()">Save Settings</button>
+        <span class="save-msg" id="saveMsg"></span>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -195,6 +281,93 @@
 
   refresh();
   setInterval(refresh, 30000);
+
+  // Tab switching
+  function switchTab(name) {
+    document.querySelectorAll(".tab").forEach((t, i) => {
+      t.classList.toggle("active", ["overview","settings"][i] === name);
+    });
+    document.querySelectorAll(".tab-panel").forEach(p => {
+      p.classList.toggle("active", p.id === "tab-" + name);
+    });
+    if (name === "settings") loadSettings();
+  }
+
+  // Settings
+  let originalSettings = {};
+  let dirty = false;
+
+  async function loadSettings() {
+    try {
+      const res = await fetch("/api/settings");
+      const data = await res.json();
+      originalSettings = { ...data };
+      document.getElementById("businessName").value = data.businessName || "";
+      document.getElementById("callbackNumber").value = data.callbackNumber || "";
+      document.getElementById("sector").value = data.sector || "Healthcare";
+      document.getElementById("country").value = data.country || "UK";
+      document.getElementById("missedCallTemplate").value = data.missedCallTemplate || "";
+      dirty = false;
+      document.getElementById("unsavedBanner").classList.remove("visible");
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+    }
+  }
+
+  function markDirty() {
+    dirty = true;
+    document.getElementById("unsavedBanner").classList.add("visible");
+  }
+
+  ["businessName","callbackNumber","sector","country","missedCallTemplate"].forEach(id => {
+    document.getElementById(id).addEventListener("input", markDirty);
+  });
+
+  async function saveSettings() {
+    const btn = document.getElementById("saveBtn");
+    const msg = document.getElementById("saveMsg");
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+    msg.textContent = "";
+
+    const body = {
+      businessName: document.getElementById("businessName").value,
+      callbackNumber: document.getElementById("callbackNumber").value,
+      sector: document.getElementById("sector").value,
+      country: document.getElementById("country").value,
+      missedCallTemplate: document.getElementById("missedCallTemplate").value,
+    };
+
+    try {
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.textContent = data.error || "Save failed";
+        msg.className = "save-msg err";
+      } else {
+        msg.textContent = "Saved successfully";
+        msg.className = "save-msg ok";
+        dirty = false;
+        document.getElementById("unsavedBanner").classList.remove("visible");
+        setTimeout(() => msg.textContent = "", 3000);
+      }
+    } catch (err) {
+      msg.textContent = "Network error";
+      msg.className = "save-msg err";
+    }
+
+    btn.disabled = false;
+    btn.textContent = "Save Settings";
+  }
+
+  // AC6: warn on navigation away with unsaved changes
+  window.addEventListener("beforeunload", (e) => {
+    if (dirty) { e.preventDefault(); e.returnValue = ""; }
+  });
 </script>
 
 </body>

@@ -51,6 +51,17 @@ async function migrate() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS settings (
+      id                    VARCHAR(64) PRIMARY KEY,
+      business_name         VARCHAR(128),
+      callback_number       VARCHAR(32),
+      sector                VARCHAR(64),
+      country               VARCHAR(32),
+      missed_call_template  TEXT,
+      updated_at            TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
   console.log("DB migration complete");
 }
 
