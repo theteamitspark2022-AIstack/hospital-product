@@ -41,8 +41,8 @@ router.post("/signup", async (req, res) => {
 
     // Seed default settings for the business
     await db.query(
-      `INSERT INTO settings (id, business_id, business_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
-      [businessId, businessId, businessName]
+      `INSERT INTO settings (id, business_id, business_name) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`,
+      [`default_${businessId}`, businessId, businessName]
     );
 
     // Hash password and create user
