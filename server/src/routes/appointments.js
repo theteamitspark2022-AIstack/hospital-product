@@ -8,10 +8,16 @@ router.post("/", async (req, res) => {
   const businessId = req.auth?.businessId;
   const { customerNumber, customerName, appointmentAt, notes } = req.body;
   if (!customerNumber || !appointmentAt) {
-    return res.status(400).json({ error: "customerNumber and appointmentAt are required" });
+    return res.status(400).json({ error: "Customer number and appointment date are required" });
+  }
+  if (!/^\+\d{7,15}$/.test(customerNumber.replace(/\s+/g, ""))) {
+    return res.status(400).json({ error: "Phone number must be in international format e.g. +447911123456" });
   }
   const apptDate = new Date(appointmentAt);
-  if (isNaN(apptDate)) return res.status(400).json({ error: "Invalid appointmentAt date" });
+  if (isNaN(apptDate)) return res.status(400).json({ error: "Invalid appointment date" });
+  if (apptDate <= new Date()) return res.status(400).json({ error: "Appointment must be in the future" });
+  if (customerName && customerName.length > 128) return res.status(400).json({ error: "Name must be under 128 characters" });
+  if (notes && notes.length > 500) return res.status(400).json({ error: "Notes must be under 500 characters" });
 
   try {
     const { rows } = await db.query(

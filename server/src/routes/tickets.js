@@ -20,7 +20,9 @@ function slaDeadlines(priority) {
 // POST /api/tickets — create a ticket
 router.post("/", async (req, res) => {
   const { conversationId, customerNumber, description, priority = "P2", assignedAgent } = req.body;
-  if (!customerNumber) return res.status(400).json({ error: "customerNumber required" });
+  if (!customerNumber) return res.status(400).json({ error: "Customer number is required" });
+  if (!["P1","P2","P3"].includes(priority)) return res.status(400).json({ error: "Priority must be P1, P2, or P3" });
+  if (description && description.length > 1000) return res.status(400).json({ error: "Description must be under 1000 characters" });
   if (!db.isConnected()) return res.status(503).json({ error: "DB not connected" });
 
   const { sla_response_at, sla_resolve_at } = slaDeadlines(priority);

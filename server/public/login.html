@@ -87,8 +87,8 @@
       <input type="email" id="signupEmail" placeholder="you@example.com" />
     </div>
     <div class="form-group">
-      <label>Password (min 8 characters)</label>
-      <input type="password" id="signupPassword" placeholder="••••••••" />
+      <label>Password</label>
+      <input type="password" id="signupPassword" placeholder="Min 8 chars, 1 uppercase, 1 number" />
     </div>
     <button class="btn" id="signupBtn" onclick="signup()">Create Account</button>
   </div>
@@ -151,7 +151,11 @@
     const email = document.getElementById("signupEmail").value.trim();
     const password = document.getElementById("signupPassword").value;
     if (!businessName || !email || !password) return showError("Please fill in all fields.");
+    if (businessName.length < 2) return showError("Business name must be at least 2 characters.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError("Enter a valid email address.");
     if (password.length < 8) return showError("Password must be at least 8 characters.");
+    if (!/[A-Z]/.test(password)) return showError("Password must contain at least one uppercase letter.");
+    if (!/[0-9]/.test(password)) return showError("Password must contain at least one number.");
 
     const btn = document.getElementById("signupBtn");
     btn.disabled = true; btn.textContent = "Creating account...";

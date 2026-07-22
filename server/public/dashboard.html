@@ -707,14 +707,15 @@
   async function sendReply(id) {
     const textarea = document.getElementById(`replyText-${id}`);
     const body = textarea.value.trim();
-    if (!body) return;
+    if (!body) { alert("Reply cannot be empty."); return; }
+    if (body.length > 1600) { alert("Reply is too long — WhatsApp messages are limited to 1600 characters."); return; }
     const res = await fetch(`/api/inbox/${id}/reply`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body }),
     });
     if (res.ok) { textarea.value = ""; loadInbox(); }
-    else alert("Failed to send reply");
+    else alert("Failed to send reply — please try again.");
   }
 
   async function resolve(id) {

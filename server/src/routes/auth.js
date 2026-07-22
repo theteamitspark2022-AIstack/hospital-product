@@ -22,10 +22,19 @@ function setAuthCookie(res, payload) {
 router.post("/signup", async (req, res) => {
   const { email, password, businessName } = req.body;
   if (!email || !password || !businessName) {
-    return res.status(400).json({ error: "email, password and businessName are required" });
+    return res.status(400).json({ error: "Email, password and business name are required" });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Enter a valid email address" });
   }
   if (password.length < 8) {
     return res.status(400).json({ error: "Password must be at least 8 characters" });
+  }
+  if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+    return res.status(400).json({ error: "Password must contain at least one uppercase letter and one number" });
+  }
+  if (businessName.trim().length < 2 || businessName.trim().length > 100) {
+    return res.status(400).json({ error: "Business name must be between 2 and 100 characters" });
   }
 
   try {

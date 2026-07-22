@@ -44,9 +44,18 @@ router.post("/", async (req, res) => {
   const businessId = req.auth?.businessId;
   const { businessName, callbackNumber, sector, country, missedCallTemplate } = req.body;
 
+  if (!businessName || businessName.trim().length < 2 || businessName.trim().length > 100) {
+    return res.status(400).json({ error: "Business name must be between 2 and 100 characters" });
+  }
+  if (callbackNumber && !/^\+\d{7,15}$/.test(callbackNumber.replace(/\s+/g, ""))) {
+    return res.status(400).json({ error: "Call-back number must be in international format e.g. +447911123456" });
+  }
+  if (!missedCallTemplate || !missedCallTemplate.trim()) {
+    return res.status(400).json({ error: "Missed call message template is required" });
+  }
   const missing = REQUIRED_TOKENS.missed_call.filter(t => !missedCallTemplate.includes(t));
   if (missing.length) {
-    return res.status(400).json({ error: `Missing required tokens: ${missing.join(", ")}` });
+    return res.status(400).json({ error: `Missing required token: ${missing.join(", ")}` });
   }
 
   if (!db.isConnected()) return res.json({ ok: true });
