@@ -15,6 +15,7 @@ const authRouter = require("./routes/auth");
 const billingRouter = require("./routes/billing");
 const appointmentsRouter = require("./routes/appointments");
 const analyticsRouter = require("./routes/analytics");
+const calendarRouter = require("./routes/calendar");
 const { startReminderScheduler } = require("./services/reminderService");
 const { authLimiter, apiLimiter } = require("./middleware/rateLimiter");
 const db = require("./models/db");
@@ -46,6 +47,7 @@ app.use("/api/tickets", requireAuth, ticketsRouter);
 app.use("/api/billing", requireAuth, billingRouter);
 app.use("/api/appointments", requireAuth, appointmentsRouter);
 app.use("/api/analytics", requireAuth, analyticsRouter);
+app.use("/api/calendar", requireAuth, calendarRouter);
 
 // Serve static assets (logo, etc.)
 app.use(express.static(path.join(__dirname, "../public")));

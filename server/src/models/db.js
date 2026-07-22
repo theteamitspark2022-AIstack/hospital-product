@@ -147,6 +147,10 @@ async function migrate() {
       created_at            TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE appointments ADD COLUMN IF NOT EXISTS google_event_id VARCHAR(256)`).catch(() => {});
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS gcal_access_token  TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS gcal_refresh_token TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS gcal_token_expiry  TIMESTAMPTZ`).catch(() => {});
   console.log("DB migration complete");
 }
 

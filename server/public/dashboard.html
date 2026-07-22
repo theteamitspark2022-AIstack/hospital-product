@@ -577,6 +577,23 @@
         <span class="save-msg" id="saveMsg"></span>
       </div>
     </div>
+
+    <!-- Google Calendar integration -->
+    <div class="card" id="gcalCard">
+      <h2>📅 Google Calendar</h2>
+      <div id="gcalStatus" style="margin-bottom:16px;font-size:14px;color:var(--slate);">Checking connection…</div>
+      <div id="gcalConnected" style="display:none;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <span style="background:var(--green-bg);color:#16A34A;border:1px solid var(--green-b);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">● Connected</span>
+          <span style="font-size:13px;color:var(--slate);">New appointments will automatically appear in your Google Calendar.</span>
+        </div>
+        <button class="btn-secondary" onclick="disconnectCalendar()" style="color:var(--red);border-color:var(--red-b);">Disconnect Calendar</button>
+      </div>
+      <div id="gcalDisconnected" style="display:none;">
+        <p style="font-size:13px;color:var(--slate);margin-bottom:14px;">Connect your Google Calendar to automatically create events when appointments are booked.</p>
+        <a href="/api/calendar/auth" class="btn-save" style="text-decoration:none;display:inline-flex;">Connect Google Calendar</a>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -821,7 +838,8 @@
   }
 
   refresh();
-  loadSettings(); // pre-load settings so the tab shows correct values instantly
+  loadSettings();
+  loadCalendarStatus();
   setInterval(refresh, 30000);
 
   // Tab switching
@@ -834,7 +852,7 @@
     document.querySelectorAll(".tab-panel").forEach(p => {
       p.classList.toggle("active", p.id === "tab-" + name);
     });
-    if (name === "settings") loadSettings();
+    if (name === "settings") { loadSettings(); loadCalendarStatus(); }
     if (name === "inbox") loadInbox();
     if (name === "tickets") loadTickets("open");
     if (name === "appointments") loadAppointments();
@@ -939,6 +957,44 @@
   // Settings
   let originalSettings = {};
   let dirty = false;
+
+  // Google Calendar
+  async function loadCalendarStatus() {
+    try {
+      const res = await fetch("/api/calendar/status");
+      const { connected } = await res.json();
+      document.getElementById("gcalStatus").style.display = "none";
+      document.getElementById("gcalConnected").style.display = connected ? "block" : "none";
+      document.getElementById("gcalDisconnected").style.display = connected ? "none" : "block";
+    } catch {
+      document.getElementById("gcalStatus").textContent = "Could not load calendar status.";
+    }
+  }
+
+  async function disconnectCalendar() {
+    if (!confirm("Disconnect Google Calendar? Future appointments won't create calendar events.")) return;
+    await fetch("/api/calendar/disconnect", { method: "DELETE" });
+    loadCalendarStatus();
+  }
+
+  // Handle redirect back from Google OAuth
+  (function checkGcalParam() {
+    const params = new URLSearchParams(window.location.search);
+    const gcal = params.get("gcal");
+    const tab = params.get("tab");
+    if (gcal === "connected") {
+      setTimeout(() => switchTab("settings"), 100);
+      setTimeout(() => loadCalendarStatus(), 300);
+    } else if (gcal === "error" || gcal === "denied") {
+      setTimeout(() => switchTab("settings"), 100);
+    }
+    if (gcal) {
+      const url = new URL(window.location);
+      url.searchParams.delete("gcal");
+      url.searchParams.delete("tab");
+      window.history.replaceState({}, "", url);
+    }
+  })();
 
   async function loadSettings() {
     try {

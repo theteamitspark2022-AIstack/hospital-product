@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../models/db");
 const { runReminderCheck } = require("../services/reminderService");
+const calendarService = require("../services/calendarService");
 
 // POST /api/appointments — book an appointment
 router.post("/", async (req, res) => {
@@ -25,7 +26,16 @@ router.post("/", async (req, res) => {
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [businessId, customerNumber, customerName || null, apptDate, notes || null]
     );
-    res.status(201).json(rows[0]);
+    const appointment = rows[0];
+
+    // Create Google Calendar event (non-blocking — don't fail if calendar not connected)
+    calendarService.createEvent(businessId, appointment).then(async (eventId) => {
+      if (eventId) {
+        await db.query("UPDATE appointments SET google_event_id = $1 WHERE id = $2", [eventId, appointment.id]);
+      }
+    }).catch(() => {});
+
+    res.status(201).json(appointment);
   } catch (err) {
     console.error("Appointment create failed:", err.message);
     res.status(500).json({ error: err.message });
@@ -56,10 +66,13 @@ router.get("/", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const businessId = req.auth?.businessId;
   try {
-    await db.query(
-      "UPDATE appointments SET status = 'cancelled' WHERE id = $1 AND business_id = $2",
+    const { rows } = await db.query(
+      "UPDATE appointments SET status = 'cancelled' WHERE id = $1 AND business_id = $2 RETURNING google_event_id",
       [req.params.id, businessId]
     );
+    // Delete Google Calendar event (non-blocking)
+    const eventId = rows[0]?.google_event_id;
+    if (eventId) calendarService.deleteEvent(businessId, eventId).catch(() => {});
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
