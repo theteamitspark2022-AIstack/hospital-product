@@ -6,7 +6,8 @@ const FROM = process.env.TWILIO_FROM_NUMBER;
 const CHANNEL = process.env.CHANNEL || "whatsapp";
 
 function toAddress(number) {
-  return CHANNEL === "whatsapp" ? `whatsapp:${number}` : number;
+  const clean = number.replace(/\s+/g, "");
+  return CHANNEL === "whatsapp" ? `whatsapp:${clean}` : clean;
 }
 
 function formatDateTime(date) {
