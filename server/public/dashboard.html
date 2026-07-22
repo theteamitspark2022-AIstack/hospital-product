@@ -53,6 +53,30 @@
     .empty-state { text-align: center; color: #94a3b8; padding: 32px; font-size: 14px; }
     .refresh-note { font-size: 12px; color: #94a3b8; margin-top: 12px; text-align: right; }
 
+    /* Inbox */
+    .inbox-list { display: flex; flex-direction: column; gap: 10px; }
+    .thread { border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
+    .thread.unread { border-color: #fcd34d; background: #fffbeb; }
+    .thread:hover { background: #f8fafc; }
+    .thread-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .thread-number { font-weight: 700; font-size: 14px; }
+    .thread-wait { font-size: 12px; color: #f59e0b; font-weight: 600; }
+    .thread-preview { font-size: 13px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .thread-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-resolve { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-resolve:hover { background: #e2e8f0; }
+    .reply-box { margin-top: 10px; display: none; flex-direction: column; gap: 8px; }
+    .reply-box.open { display: flex; }
+    .reply-box textarea { padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 70px; }
+    .btn-send { background: #1a1a2e; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; align-self: flex-end; }
+    .btn-send:hover { background: #334155; }
+    .msg-history { margin-top: 10px; display: none; flex-direction: column; gap: 6px; }
+    .msg-history.open { display: flex; }
+    .msg { padding: 8px 12px; border-radius: 8px; font-size: 13px; max-width: 80%; }
+    .msg.inbound { background: #f1f5f9; align-self: flex-start; }
+    .msg.outbound { background: #1a1a2e; color: #fff; align-self: flex-end; }
+    .msg-time { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+
     /* Tabs */
     .tabs { display: flex; gap: 4px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
     .tab { padding: 10px 20px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
@@ -95,6 +119,7 @@
 <main>
   <div class="tabs">
     <div class="tab active" onclick="switchTab('overview')">Overview</div>
+    <div class="tab" onclick="switchTab('inbox')">Inbox <span id="inboxBadge" style="display:none;background:#f59e0b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></div>
     <div class="tab" onclick="switchTab('settings')">Settings</div>
   </div>
 
@@ -109,6 +134,17 @@
     <div class="card">
       <h2>Call Log</h2>
       <div id="callLog"><div class="empty-state">Loading...</div></div>
+      <p class="refresh-note">Auto-refreshes every 30 seconds</p>
+    </div>
+  </div>
+
+  <!-- Inbox tab -->
+  <div class="tab-panel" id="tab-inbox">
+    <div class="card">
+      <h2>Customer Inbox</h2>
+      <div class="inbox-list" id="inboxList">
+        <div class="empty-state">Loading...</div>
+      </div>
       <p class="refresh-note">Auto-refreshes every 30 seconds</p>
     </div>
   </div>
@@ -300,12 +336,106 @@
   // Tab switching
   function switchTab(name) {
     document.querySelectorAll(".tab").forEach((t, i) => {
-      t.classList.toggle("active", ["overview","settings"][i] === name);
+      t.classList.toggle("active", ["overview","inbox","settings"][i] === name);
     });
     document.querySelectorAll(".tab-panel").forEach(p => {
       p.classList.toggle("active", p.id === "tab-" + name);
     });
     if (name === "settings") loadSettings();
+    if (name === "inbox") loadInbox();
+  }
+
+  // Inbox
+  async function loadInbox() {
+    try {
+      const res = await fetch("/api/inbox");
+      const threads = await res.json();
+      const list = document.getElementById("inboxList");
+      const badge = document.getElementById("inboxBadge");
+
+      if (threads.length) {
+        badge.textContent = threads.length;
+        badge.style.display = "inline";
+      } else {
+        badge.style.display = "none";
+      }
+
+      if (!threads.length) {
+        list.innerHTML = '<div class="empty-state">No open threads — all caught up!</div>';
+        return;
+      }
+
+      list.innerHTML = threads.map(t => {
+        const waited = formatWait(t.waiting);
+        return `
+          <div class="thread unread" id="thread-${t.id}">
+            <div class="thread-header">
+              <span class="thread-number">${t.customer_number}</span>
+              <span class="thread-wait">Waiting ${waited}</span>
+            </div>
+            <div class="thread-preview">${escHtml(t.last_message || "")}</div>
+            <div class="msg-history" id="history-${t.id}"></div>
+            <div class="thread-actions">
+              <button class="btn-resolve" onclick="toggleHistory(${t.id})">View History</button>
+              <button class="btn-resolve" onclick="toggleReply(${t.id})">Reply</button>
+              <button class="btn-resolve" onclick="resolve(${t.id})">Mark Resolved</button>
+            </div>
+            <div class="reply-box" id="reply-${t.id}">
+              <textarea id="replyText-${t.id}" placeholder="Type your reply..."></textarea>
+              <button class="btn-send" onclick="sendReply(${t.id})">Send via WhatsApp</button>
+            </div>
+          </div>`;
+      }).join("");
+    } catch (err) {
+      console.error("Failed to load inbox:", err);
+    }
+  }
+
+  async function toggleHistory(id) {
+    const box = document.getElementById(`history-${id}`);
+    if (box.classList.contains("open")) { box.classList.remove("open"); return; }
+    const res = await fetch(`/api/inbox/${id}/messages`);
+    const msgs = await res.json();
+    box.innerHTML = msgs.map(m => `
+      <div class="msg ${m.direction}">
+        ${escHtml(m.body)}
+        <div class="msg-time">${new Date(m.created_at).toLocaleTimeString()}</div>
+      </div>`).join("");
+    box.classList.add("open");
+  }
+
+  function toggleReply(id) {
+    document.getElementById(`reply-${id}`).classList.toggle("open");
+  }
+
+  async function sendReply(id) {
+    const textarea = document.getElementById(`replyText-${id}`);
+    const body = textarea.value.trim();
+    if (!body) return;
+    const res = await fetch(`/api/inbox/${id}/reply`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body }),
+    });
+    if (res.ok) { textarea.value = ""; loadInbox(); }
+    else alert("Failed to send reply");
+  }
+
+  async function resolve(id) {
+    await fetch(`/api/inbox/${id}/resolve`, { method: "POST" });
+    loadInbox();
+  }
+
+  function formatWait(interval) {
+    if (!interval) return "just now";
+    const secs = Math.floor(interval.seconds || 0);
+    if (secs < 60) return `${secs}s`;
+    if (secs < 3600) return `${Math.floor(secs/60)}m`;
+    return `${Math.floor(secs/3600)}h`;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
   // Settings

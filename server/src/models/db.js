@@ -62,6 +62,27 @@ async function migrate() {
       updated_at            TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS conversations (
+      id                SERIAL PRIMARY KEY,
+      customer_number   VARCHAR(32) UNIQUE NOT NULL,
+      status            VARCHAR(16) DEFAULT 'open',
+      last_message      TEXT,
+      last_message_at   TIMESTAMPTZ DEFAULT NOW(),
+      resolved_at       TIMESTAMPTZ,
+      created_at        TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id                SERIAL PRIMARY KEY,
+      conversation_id   INTEGER REFERENCES conversations(id),
+      direction         VARCHAR(8) NOT NULL,
+      body              TEXT,
+      twilio_sid        VARCHAR(64),
+      created_at        TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
   console.log("DB migration complete");
 }
 
