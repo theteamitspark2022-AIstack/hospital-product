@@ -50,7 +50,7 @@ router.get("/", async (req, res) => {
         CASE WHEN sla_resolve_at  < NOW() AND status != 'resolved' THEN true ELSE false END AS resolve_breached
        FROM tickets
        WHERE status = $1
-         AND ($2::varchar IS NULL OR business_id = $2)
+         AND business_id = $2
        ORDER BY priority ASC, created_at ASC`,
       [status, businessId || null]
     );

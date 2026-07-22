@@ -23,8 +23,8 @@ async function logCall({ callSid, from, to, status, callerName, duration, busine
 async function getCalls({ limit = 50, offset = 0, businessId } = {}) {
   if (!db.isConnected()) return [];
   const { rows } = await db.query(
-    "SELECT * FROM calls WHERE ($1::varchar IS NULL OR business_id = $1) ORDER BY created_at DESC LIMIT $2 OFFSET $3",
-    [businessId || null, limit, offset]
+    "SELECT * FROM calls WHERE business_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3",
+    [businessId, limit, offset]
   );
   return rows;
 }

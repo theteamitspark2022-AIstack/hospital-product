@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
     try {
       const biz = await db.query("SELECT is_live FROM businesses WHERE id = $1", [businessId]);
       if (biz.rows.length) isLive = biz.rows[0].is_live;
-      const calls = await db.query("SELECT COUNT(*) FROM calls WHERE business_id = $1", [businessId]);
+      const calls = await db.query("SELECT COUNT(*) FROM calls WHERE business_id = $1::varchar", [businessId]);
       callCount = parseInt(calls.rows[0].count);
     } catch (err) {
       console.error("Status query failed:", err.message);

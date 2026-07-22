@@ -177,9 +177,9 @@ router.get("/", async (req, res) => {
              (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count
       FROM conversations c
       WHERE c.status = 'open'
-        AND ($1::varchar IS NULL OR c.business_id = $1)
+        AND c.business_id = $1
       ORDER BY c.last_message_at ASC
-    `, [businessId || null]);
+    `, [businessId]);
     res.json(rows);
   } catch (err) {
     console.error("Inbox list failed:", err.message);
