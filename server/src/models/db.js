@@ -44,6 +44,13 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS from_number_hash VARCHAR(64),
       ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)
   `).catch(() => {});
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS businesses (
+      id       VARCHAR(64) PRIMARY KEY,
+      is_live  BOOLEAN DEFAULT false,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
   console.log("DB migration complete");
 }
 

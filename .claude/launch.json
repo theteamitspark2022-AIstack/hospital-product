@@ -2,10 +2,26 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "landing-page",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5500", "--directory", "landing-page"],
-      "port": 5500
+      "name": "buddy",
+      "runtimeExecutable": "C:/Program Files/nodejs/node.exe",
+      "runtimeArgs": ["server.js"],
+      "cwd": "${workspaceFolder}/buddy",
+      "port": 3001
+    },
+    {
+      "name": "hospital-server",
+      "runtimeExecutable": "C:/Program Files/nodejs/node.exe",
+      "runtimeArgs": ["src/app.js"],
+      "cwd": "${workspaceFolder}/server",
+      "port": 3000,
+      "env": {
+        "PORT": "3000",
+        "NODE_ENV": "development",
+        "TWILIO_ACCOUNT_SID": "ACtest",
+        "TWILIO_AUTH_TOKEN": "test",
+        "TWILIO_FROM_NUMBER": "+14155238886",
+        "CHANNEL": "whatsapp"
+      }
     }
   ]
 }

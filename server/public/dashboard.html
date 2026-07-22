@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ConnectAI Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f6f9; color: #1a1a2e; }
+
+    /* Header */
+    header { background: #1a1a2e; color: #fff; padding: 16px 32px; display: flex; justify-content: space-between; align-items: center; }
+    header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .live-badge { background: #22c55e; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; display: none; }
+    .live-badge.visible { display: inline-block; }
+    .progress-pill { background: #334155; padding: 4px 14px; border-radius: 20px; font-size: 13px; color: #94a3b8; }
+    .progress-pill span { color: #fff; font-weight: 700; }
+
+    /* Layout */
+    main { max-width: 900px; margin: 32px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* Cards */
+    .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .card h2 { font-size: 16px; font-weight: 700; color: #334155; margin-bottom: 16px; }
+
+    /* Checklist */
+    .checklist { display: flex; flex-direction: column; gap: 12px; }
+    .step { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border-radius: 8px; border: 1px solid #e2e8f0; transition: background 0.2s; }
+    .step.done { background: #f0fdf4; border-color: #bbf7d0; }
+    .step.active { background: #eff6ff; border-color: #bfdbfe; }
+    .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .step.done .step-icon { background: #22c55e; color: #fff; }
+    .step.active .step-icon { background: #3b82f6; color: #fff; }
+    .step.pending .step-icon { background: #e2e8f0; color: #94a3b8; }
+    .step-content { flex: 1; }
+    .step-label { font-weight: 600; font-size: 15px; }
+    .step-desc { font-size: 13px; color: #64748b; margin-top: 4px; line-height: 1.5; }
+    .step-phone { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-top: 6px; letter-spacing: 1px; }
+    .btn-golive { margin-top: 10px; background: #1a1a2e; color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-golive:hover { background: #334155; }
+    .btn-golive:disabled { background: #94a3b8; cursor: default; }
+
+    /* Call log */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 8px 12px; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0; }
+    td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+    tr:last-child td { border-bottom: none; }
+    .status-badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .status-badge.no-answer, .status-badge.busy, .status-badge.failed, .status-badge.canceled { background: #fee2e2; color: #dc2626; }
+    .status-badge.completed { background: #dcfce7; color: #16a34a; }
+    .status-badge.ringing, .status-badge.in-progress { background: #fef9c3; color: #ca8a04; }
+    .empty-state { text-align: center; color: #94a3b8; padding: 32px; font-size: 14px; }
+    .refresh-note { font-size: 12px; color: #94a3b8; margin-top: 12px; text-align: right; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>ConnectAI Dashboard</h1>
+  <div class="header-right">
+    <div class="live-badge" id="liveBadge">LIVE</div>
+    <div class="progress-pill">Setup: <span id="progressPct">0%</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- Checklist card -->
+  <div class="card">
+    <h2>Onboarding Checklist</h2>
+    <div class="checklist" id="checklist">
+      <div class="empty-state">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Call log card -->
+  <div class="card">
+    <h2>Call Log</h2>
+    <div id="callLog"><div class="empty-state">Loading...</div></div>
+    <p class="refresh-note">Auto-refreshes every 30 seconds</p>
+  </div>
+</main>
+
+<script>
+  const stepDescriptions = {
+    signup:       "Your account is created and ready.",
+    verify_email: "Your email address has been verified.",
+    templates:    "Your missed call message template is configured.",
+    test_call:    null, // dynamic
+    go_live:      "Mark your business as active to go live.",
+  };
+
+  async function loadStatus() {
+    try {
+      const res = await fetch("/api/status");
+      const data = await res.json();
+
+      document.getElementById("progressPct").textContent = data.percentComplete + "%";
+
+      const liveBadge = document.getElementById("liveBadge");
+      if (data.isLive) liveBadge.classList.add("visible");
+      else liveBadge.classList.remove("visible");
+
+      const checklist = document.getElementById("checklist");
+      const firstPending = data.checklist.find(s => !s.done);
+
+      checklist.innerHTML = data.checklist.map((step, i) => {
+        const isDone = step.done;
+        const isActive = !isDone && step === firstPending;
+        const cls = isDone ? "done" : isActive ? "active" : "pending";
+        const icon = isDone ? "✓" : i + 1;
+
+        let desc = stepDescriptions[step.key] || "";
+        let extra = "";
+
+        if (step.key === "test_call" && !isDone) {
+          desc = "Call this number from your mobile to confirm everything works:";
+          extra = `<div class="step-phone">${data.businessPhone}</div>`;
+        } else if (step.key === "test_call" && isDone) {
+          desc = "Test call received — system is working correctly.";
+        }
+
+        if (step.key === "go_live" && !isDone) {
+          extra += `<button class="btn-golive" onclick="goLive(this)" ${!data.checklist[3].done ? "disabled" : ""}>Mark as Live</button>`;
+        }
+
+        return `
+          <div class="step ${cls}">
+            <div class="step-icon">${icon}</div>
+            <div class="step-content">
+              <div class="step-label">${step.label}</div>
+              <div class="step-desc">${desc}${extra}</div>
+            </div>
+          </div>`;
+      }).join("");
+
+    } catch (err) {
+      console.error("Failed to load status:", err);
+    }
+  }
+
+  async function loadCalls() {
+    try {
+      const res = await fetch("/api/status/calls");
+      const calls = await res.json();
+      const container = document.getElementById("callLog");
+
+      if (!calls.length) {
+        container.innerHTML = '<div class="empty-state">No calls recorded yet. Make a test call to get started.</div>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>From</th>
+              <th>Status</th>
+              <th>Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${calls.map(c => `
+              <tr>
+                <td>${new Date(c.created_at).toLocaleString()}</td>
+                <td>${c.caller_name || c.from_number || "Unknown"}</td>
+                <td><span class="status-badge ${c.status}">${c.status}</span></td>
+                <td>${c.duration ? c.duration + "s" : "—"}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>`;
+    } catch (err) {
+      console.error("Failed to load calls:", err);
+    }
+  }
+
+  async function goLive(btn) {
+    btn.disabled = true;
+    btn.textContent = "Going live...";
+    try {
+      await fetch("/api/status/golive", { method: "POST" });
+      await loadStatus();
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = "Mark as Live";
+    }
+  }
+
+  function refresh() {
+    loadStatus();
+    loadCalls();
+  }
+
+  refresh();
+  setInterval(refresh, 30000);
+</script>
+
+</body>
+</html>
