@@ -4,6 +4,21 @@ const db = require("../models/db");
 const twilio = require("twilio");
 const { detectKeyword, getAutoReply } = require("../services/buddyService");
 
+const COMPLAINT_REGEX = /\b(complaint|complain|unhappy|not happy|wrong|mistake|error|terrible|awful|disgusting|refund|rude|unacceptable)\b/i;
+
+async function autoRaiseTicket(convId, customerNumber, body) {
+  try {
+    await db.query(
+      `INSERT INTO tickets (conversation_id, customer_number, description, priority, sla_response_at, sla_resolve_at)
+       VALUES ($1, $2, $3, 'P1', NOW() + INTERVAL '30 minutes', NOW() + INTERVAL '4 hours')`,
+      [convId, customerNumber, `Auto-raised: customer message contained complaint keywords.\n\nMessage: "${body}"`]
+    );
+    console.log(`Auto-ticket raised for ${customerNumber}`);
+  } catch (err) {
+    console.error("Auto-ticket failed:", err.message);
+  }
+}
+
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const FROM = process.env.TWILIO_FROM_NUMBER;
 const CHANNEL = process.env.CHANNEL || "whatsapp";
@@ -90,6 +105,11 @@ router.post("/inbound", async (req, res) => {
           await db.query("UPDATE conversations SET status = 'resolved' WHERE id = $1", [convId]);
 
         } else {
+          // Auto-raise P1 ticket for complaint keywords
+          if (COMPLAINT_REGEX.test(Body)) {
+            await autoRaiseTicket(convId, customerNumber, Body);
+          }
+
           // Free-text — try Buddy AI auto-reply
           const settings = await getBusinessSettings();
           const aiReply = await getAutoReply(Body, settings.business_name, settings.sector);

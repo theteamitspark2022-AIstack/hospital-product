@@ -83,6 +83,22 @@ async function migrate() {
       created_at        TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS tickets (
+      id                SERIAL PRIMARY KEY,
+      conversation_id   INTEGER REFERENCES conversations(id),
+      customer_number   VARCHAR(32),
+      description       TEXT,
+      priority          VARCHAR(4) DEFAULT 'P2',
+      status            VARCHAR(16) DEFAULT 'open',
+      assigned_agent    VARCHAR(64),
+      sla_response_at   TIMESTAMPTZ,
+      sla_resolve_at    TIMESTAMPTZ,
+      resolved_at       TIMESTAMPTZ,
+      created_at        TIMESTAMPTZ DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
   console.log("DB migration complete");
 }
 

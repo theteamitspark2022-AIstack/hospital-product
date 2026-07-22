@@ -77,6 +77,23 @@
     .msg.outbound { background: #1a1a2e; color: #fff; align-self: flex-end; }
     .msg-time { font-size: 11px; opacity: 0.6; margin-top: 2px; }
 
+    /* Tickets */
+    .ticket { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+    .ticket.p1 { border-left: 4px solid #ef4444; }
+    .ticket.p2 { border-left: 4px solid #f59e0b; }
+    .ticket.p3 { border-left: 4px solid #22c55e; }
+    .ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .ticket-id { font-weight: 700; font-size: 13px; color: #64748b; }
+    .ticket-priority { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+    .ticket-priority.p1 { background: #fee2e2; color: #dc2626; }
+    .ticket-priority.p2 { background: #fef9c3; color: #b45309; }
+    .ticket-priority.p3 { background: #dcfce7; color: #16a34a; }
+    .ticket-customer { font-weight: 600; font-size: 14px; }
+    .ticket-desc { font-size: 13px; color: #64748b; margin: 6px 0; }
+    .ticket-sla { font-size: 12px; color: #ef4444; font-weight: 600; }
+    .ticket-sla.ok { color: #64748b; }
+    .ticket-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
     /* Tabs */
     .tabs { display: flex; gap: 4px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
     .tab { padding: 10px 20px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
@@ -120,6 +137,7 @@
   <div class="tabs">
     <div class="tab active" onclick="switchTab('overview')">Overview</div>
     <div class="tab" onclick="switchTab('inbox')">Inbox <span id="inboxBadge" style="display:none;background:#f59e0b;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></div>
+    <div class="tab" onclick="switchTab('tickets')">Tickets <span id="ticketsBadge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;"></span></div>
     <div class="tab" onclick="switchTab('settings')">Settings</div>
   </div>
 
@@ -145,6 +163,20 @@
       <div class="inbox-list" id="inboxList">
         <div class="empty-state">Loading...</div>
       </div>
+      <p class="refresh-note">Auto-refreshes every 30 seconds</p>
+    </div>
+  </div>
+
+  <!-- Tickets tab -->
+  <div class="tab-panel" id="tab-tickets">
+    <div class="card">
+      <h2>Support Tickets</h2>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button class="btn-save" style="padding:8px 16px;font-size:13px;" onclick="loadTickets('open')">Open</button>
+        <button class="btn-save" style="padding:8px 16px;font-size:13px;background:#475569;" onclick="loadTickets('in_progress')">In Progress</button>
+        <button class="btn-save" style="padding:8px 16px;font-size:13px;background:#475569;" onclick="loadTickets('resolved')">Resolved</button>
+      </div>
+      <div id="ticketList"><div class="empty-state">Loading...</div></div>
       <p class="refresh-note">Auto-refreshes every 30 seconds</p>
     </div>
   </div>
@@ -336,13 +368,14 @@
   // Tab switching
   function switchTab(name) {
     document.querySelectorAll(".tab").forEach((t, i) => {
-      t.classList.toggle("active", ["overview","inbox","settings"][i] === name);
+      t.classList.toggle("active", ["overview","inbox","tickets","settings"][i] === name);
     });
     document.querySelectorAll(".tab-panel").forEach(p => {
       p.classList.toggle("active", p.id === "tab-" + name);
     });
     if (name === "settings") loadSettings();
     if (name === "inbox") loadInbox();
+    if (name === "tickets") loadTickets("open");
   }
 
   // Inbox
@@ -378,6 +411,7 @@
             <div class="thread-actions">
               <button class="btn-resolve" onclick="toggleHistory(${t.id})">View History</button>
               <button class="btn-resolve" onclick="toggleReply(${t.id})">Reply</button>
+              <button class="btn-resolve" onclick="raiseTicket(${t.id}, '${t.customer_number}')">Raise Ticket</button>
               <button class="btn-resolve" onclick="resolve(${t.id})">Mark Resolved</button>
             </div>
             <div class="reply-box" id="reply-${t.id}">
@@ -513,6 +547,80 @@
   window.addEventListener("beforeunload", (e) => {
     if (dirty) { e.preventDefault(); e.returnValue = ""; }
   });
+</script>
+
+<script>
+  // Tickets
+  let ticketStatus = "open";
+
+  async function loadTickets(status) {
+    ticketStatus = status || ticketStatus;
+    const list = document.getElementById("ticketList");
+    try {
+      const res = await fetch(`/api/tickets?status=${ticketStatus}`);
+      const tickets = await res.json();
+
+      // Update badge
+      if (ticketStatus === "open") {
+        const badge = document.getElementById("ticketsBadge");
+        if (tickets.length) { badge.textContent = tickets.length; badge.style.display = "inline"; }
+        else badge.style.display = "none";
+      }
+
+      if (!tickets.length) {
+        list.innerHTML = `<div class="empty-state">No ${ticketStatus} tickets.</div>`;
+        return;
+      }
+
+      list.innerHTML = tickets.map(t => {
+        const p = t.priority.toLowerCase();
+        const breached = t.resolve_breached ? "SLA BREACHED" : t.response_breached ? "RESPONSE OVERDUE" : "";
+        const slaLabel = breached
+          ? `<div class="ticket-sla">${breached}</div>`
+          : `<div class="ticket-sla ok">Resolve by: ${new Date(t.sla_resolve_at).toLocaleString()}</div>`;
+
+        return `
+          <div class="ticket ${p}">
+            <div class="ticket-header">
+              <span class="ticket-id">#${t.id} · ${new Date(t.created_at).toLocaleString()}</span>
+              <span class="ticket-priority ${p}">${t.priority}</span>
+            </div>
+            <div class="ticket-customer">${t.customer_number}</div>
+            <div class="ticket-desc">${escHtml(t.description || "No description")}</div>
+            ${slaLabel}
+            <div class="ticket-actions">
+              ${t.status === "open" ? `<button class="btn-resolve" onclick="updateTicket(${t.id},'in_progress')">Start Working</button>` : ""}
+              ${t.status !== "resolved" ? `<button class="btn-resolve" onclick="updateTicket(${t.id},'resolved')">Resolve</button>` : ""}
+              <button class="btn-resolve" onclick="raiseTicketFromId(${t.id})">Change Priority</button>
+            </div>
+          </div>`;
+      }).join("");
+    } catch (err) {
+      console.error("Ticket load error:", err);
+    }
+  }
+
+  async function updateTicket(id, status) {
+    await fetch(`/api/tickets/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    loadTickets(ticketStatus);
+  }
+
+  async function raiseTicket(conversationId, customerNumber) {
+    const desc = prompt("Describe the issue:");
+    if (desc === null) return;
+    const priority = prompt("Priority? P1 (urgent), P2 (normal), P3 (low)", "P2");
+    if (!priority) return;
+    await fetch("/api/tickets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId, customerNumber, description: desc, priority: priority.toUpperCase() }),
+    });
+    alert("Ticket raised!");
+  }
 </script>
 
 <!-- Buddy Chat Widget -->
