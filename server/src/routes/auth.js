@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const db = require("../models/db");
 
 const SECRET = process.env.JWT_SECRET || "changeme-set-JWT_SECRET-in-env";
@@ -32,16 +33,16 @@ router.post("/signup", async (req, res) => {
     const existing = await db.query("SELECT id FROM users WHERE email = $1", [email.toLowerCase()]);
     if (existing.rows.length) return res.status(409).json({ error: "Email already registered" });
 
-    // Create business
-    const biz = await db.query(
-      "INSERT INTO businesses (name) VALUES ($1) RETURNING id", [businessName]
+    // Create business with a unique string ID
+    const businessId = crypto.randomUUID();
+    await db.query(
+      "INSERT INTO businesses (id, name) VALUES ($1, $2)", [businessId, businessName]
     );
-    const businessId = biz.rows[0].id;
 
     // Seed default settings for the business
     await db.query(
       `INSERT INTO settings (id, business_id, business_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
-      [`biz_${businessId}`, businessId, businessName]
+      [businessId, businessId, businessName]
     );
 
     // Hash password and create user

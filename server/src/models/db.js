@@ -45,23 +45,24 @@ async function migrate() {
       ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)
   `).catch(() => {});
   // Auth migrations
-  await pool.query(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS business_id INTEGER`).catch(() => {});
-  await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS business_id INTEGER`).catch(() => {});
-  await pool.query(`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS business_id INTEGER`).catch(() => {});
+  await pool.query(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)`).catch(() => {});
+  await pool.query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)`).catch(() => {});
+  await pool.query(`ALTER TABLE tickets ADD COLUMN IF NOT EXISTS business_id VARCHAR(64)`).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS businesses (
-      id         SERIAL PRIMARY KEY,
+      id         VARCHAR(64) PRIMARY KEY,
       name       VARCHAR(128),
       is_live    BOOLEAN DEFAULT false,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE businesses ADD COLUMN IF NOT EXISTS name VARCHAR(128)`).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id            SERIAL PRIMARY KEY,
       email         VARCHAR(256) UNIQUE NOT NULL,
       password_hash VARCHAR(256) NOT NULL,
-      business_id   INTEGER REFERENCES businesses(id),
+      business_id   VARCHAR(64) REFERENCES businesses(id),
       role          VARCHAR(16) DEFAULT 'owner',
       created_at    TIMESTAMPTZ DEFAULT NOW()
     )
