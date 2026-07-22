@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Superadmin — AIVoiceConnect</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #F8FAFC; color: #020817; font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+    header {
+      background: linear-gradient(135deg, #020817, #0a1628);
+      color: #fff; padding: 0 32px; height: 56px;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-brand img { height: 28px; width: auto; }
+    .header-brand .divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); }
+    .header-brand span { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); }
+    .superadmin-badge { background: #EF4444; color: #fff; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+    .btn-signout { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .btn-signout:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 80px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 18px 20px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748B; margin-bottom: 8px; }
+    .stat-value { font-size: 30px; font-weight: 800; color: #020817; line-height: 1; font-variant-numeric: tabular-nums; }
+
+    /* Table card */
+    .card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden; }
+    .card-header { padding: 18px 24px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 15px; font-weight: 700; color: #0F172A; }
+    .card-header small { font-size: 12px; color: #94A3B8; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    th { text-align: left; padding: 10px 16px; font-size: 11px; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; border-bottom: 1px solid #E2E8F0; white-space: nowrap; background: #F8FAFC; }
+    td { padding: 13px 16px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #F8FAFC; }
+
+    .biz-name { font-weight: 700; color: #0F172A; }
+    .biz-id { font-size: 11px; color: #94A3B8; margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+    .plan-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
+    .plan-trial   { background: #F1F5F9; color: #64748B; }
+    .plan-starter { background: #EEF2FF; color: #4F46E5; }
+    .plan-growth  { background: #EFF6FF; color: #2563EB; }
+    .plan-pro     { background: #F0FDF4; color: #16A34A; }
+
+    .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
+    .status-active   { background: #F0FDF4; color: #16A34A; }
+    .status-trial    { background: #FFFBEB; color: #B45309; }
+    .status-inactive { background: #FEF2F2; color: #DC2626; }
+
+    .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+    .live-dot.on  { background: #22C55E; }
+    .live-dot.off { background: #94A3B8; }
+
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    select.plan-select {
+      padding: 5px 8px; border: 1px solid #E2E8F0; border-radius: 6px;
+      font-size: 12px; font-family: inherit; color: #0F172A;
+      background: #fff; cursor: pointer; outline: none;
+    }
+    select.plan-select:focus { border-color: #3182ED; }
+
+    .btn-sm {
+      padding: 5px 12px; border-radius: 6px; font-size: 12px;
+      font-weight: 600; cursor: pointer; border: 1px solid; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: #3182ED; color: #fff; border-color: #3182ED; }
+    .btn-primary:hover { background: #1368D8; }
+    .btn-danger  { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
+    .btn-danger:hover  { background: #DC2626; color: #fff; }
+    .btn-success { background: #F0FDF4; color: #16A34A; border-color: #BBF7D0; }
+    .btn-success:hover { background: #16A34A; color: #fff; }
+
+    .empty-state { text-align: center; padding: 48px 24px; color: #94A3B8; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 14px; padding: 28px; width: 100%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+    .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .modal-users { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .modal-user { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #F8FAFC; border-radius: 8px; border: 1px solid #E2E8F0; }
+    .modal-user-email { font-size: 13px; font-weight: 500; }
+    .modal-user-role { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+    .role-owner { background: #EEF2FF; color: #4F46E5; }
+    .role-agent { background: #F1F5F9; color: #64748B; }
+    .btn-close { background: #F1F5F9; color: #334155; border: 1px solid #E2E8F0; padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #0F172A; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; display: none; z-index: 300; box-shadow: 0 4px 14px rgba(0,0,0,0.2); }
+    .toast.visible { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <img src="/logo.webp" alt="TheTeam ITSpark" />
+    <div class="divider"></div>
+    <span>AIVoiceConnect</span>
+    <span class="superadmin-badge">SUPERADMIN</span>
+  </div>
+  <button class="btn-signout" onclick="signOut()">Sign Out</button>
+</header>
+
+<main>
+  <!-- Platform stats -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-label">Businesses</div><div class="stat-value" id="statBiz">—</div></div>
+    <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value" id="statUsers">—</div></div>
+    <div class="stat-card"><div class="stat-label">Total Calls</div><div class="stat-value" id="statCalls">—</div></div>
+    <div class="stat-card"><div class="stat-label">Tickets</div><div class="stat-value" id="statTickets">—</div></div>
+    <div class="stat-card"><div class="stat-label">Appointments</div><div class="stat-value" id="statAppts">—</div></div>
+  </div>
+
+  <!-- Businesses table -->
+  <div class="card">
+    <div class="card-header">
+      <h2>All Businesses</h2>
+      <small id="lastRefresh"></small>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Business</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Trial Ends</th>
+            <th>Users</th>
+            <th>Calls</th>
+            <th>Tickets</th>
+            <th>Appts</th>
+            <th>Live</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bizTable">
+          <tr><td colspan="10" class="empty-state">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Users modal -->
+<div class="modal-overlay" id="usersModal">
+  <div class="modal">
+    <h3 id="modalTitle">Users</h3>
+    <div class="modal-users" id="modalUsers"></div>
+    <button class="btn-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  function showToast(msg, duration = 2500) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("visible");
+    setTimeout(() => t.classList.remove("visible"), duration);
+  }
+
+  async function signOut() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  }
+
+  async function loadStats() {
+    try {
+      const res = await fetch("/api/superadmin/stats");
+      const s = await res.json();
+      document.getElementById("statBiz").textContent = s.businesses;
+      document.getElementById("statUsers").textContent = s.users;
+      document.getElementById("statCalls").textContent = s.calls;
+      document.getElementById("statTickets").textContent = s.tickets;
+      document.getElementById("statAppts").textContent = s.appointments;
+    } catch {}
+  }
+
+  function planClass(plan) {
+    return { trial: "plan-trial", starter: "plan-starter", growth: "plan-growth", pro: "plan-pro" }[plan] || "plan-trial";
+  }
+
+  function statusClass(status) {
+    if (status === "active") return "status-active";
+    if (status === "trial")  return "status-trial";
+    return "status-inactive";
+  }
+
+  function formatDate(d) {
+    if (!d) return "—";
+    return new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  }
+
+  async function loadBusinesses() {
+    const tbody = document.getElementById("bizTable");
+    try {
+      const res = await fetch("/api/superadmin/businesses");
+      const list = await res.json();
+      document.getElementById("lastRefresh").textContent = "Updated " + new Date().toLocaleTimeString("en-GB");
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No businesses yet</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(b => `
+        <tr id="row-${b.id}">
+          <td>
+            <div class="biz-name">${b.name || "Unnamed"}</div>
+            <div class="biz-id">${b.id}</div>
+          </td>
+          <td><span class="plan-badge ${planClass(b.plan)}">${(b.plan || "trial").toUpperCase()}</span></td>
+          <td><span class="status-badge ${statusClass(b.subscription_status)}">${b.subscription_status || "trial"}</span></td>
+          <td>${formatDate(b.trial_ends_at)}</td>
+          <td><button class="btn-sm btn-primary" onclick="showUsers('${b.id}','${b.name || "Unnamed"}')">${b.user_count}</button></td>
+          <td>${b.call_count}</td>
+          <td>${b.ticket_count}</td>
+          <td>${b.appointment_count}</td>
+          <td><span class="live-dot ${b.is_live ? 'on' : 'off'}"></span>${b.is_live ? "Live" : "Off"}</td>
+          <td>
+            <div class="actions">
+              <select class="plan-select" id="plan-${b.id}">
+                <option value="trial"   ${b.plan==='trial'   ? 'selected':''}>Trial</option>
+                <option value="starter" ${b.plan==='starter' ? 'selected':''}>Starter</option>
+                <option value="growth"  ${b.plan==='growth'  ? 'selected':''}>Growth</option>
+                <option value="pro"     ${b.plan==='pro'     ? 'selected':''}>Pro</option>
+              </select>
+              <button class="btn-sm btn-primary" onclick="savePlan('${b.id}')">Save</button>
+              ${b.is_live
+                ? `<button class="btn-sm btn-danger" onclick="toggleLive('${b.id}', false)">Disable</button>`
+                : `<button class="btn-sm btn-success" onclick="toggleLive('${b.id}', true)">Enable</button>`
+              }
+            </div>
+          </td>
+        </tr>
+      `).join("");
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="10" class="empty-state">Failed to load businesses</td></tr>`;
+    }
+  }
+
+  async function savePlan(bizId) {
+    const plan = document.getElementById(`plan-${bizId}`).value;
+    const res = await fetch(`/api/superadmin/businesses/${bizId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan, subscription_status: plan === "trial" ? "trial" : "active" }),
+    });
+    if (res.ok) { showToast("Plan updated"); loadBusinesses(); }
+    else showToast("Failed to update plan");
+  }
+
+  async function toggleLive(bizId, isLive) {
+    const res = await fetch(`/api/superadmin/businesses/${bizId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ is_live: isLive }),
+    });
+    if (res.ok) { showToast(isLive ? "Business enabled" : "Business disabled"); loadBusinesses(); }
+    else showToast("Failed to update");
+  }
+
+  async function showUsers(bizId, bizName) {
+    document.getElementById("modalTitle").textContent = `Users — ${bizName}`;
+    document.getElementById("modalUsers").innerHTML = "<div style='color:#94A3B8;font-size:13px;'>Loading…</div>";
+    document.getElementById("usersModal").classList.add("open");
+    try {
+      const res = await fetch(`/api/superadmin/businesses/${bizId}/users`);
+      const users = await res.json();
+      document.getElementById("modalUsers").innerHTML = users.length
+        ? users.map(u => `
+            <div class="modal-user">
+              <div>
+                <div class="modal-user-email">${u.email}</div>
+                <div style="font-size:11px;color:#94A3B8;margin-top:2px;">Joined ${formatDate(u.created_at)}</div>
+              </div>
+              <span class="modal-user-role ${u.role === 'owner' ? 'role-owner' : 'role-agent'}">${u.role}</span>
+            </div>`).join("")
+        : "<div style='color:#94A3B8;font-size:13px;'>No users found</div>";
+    } catch {
+      document.getElementById("modalUsers").innerHTML = "<div style='color:#EF4444;font-size:13px;'>Failed to load users</div>";
+    }
+  }
+
+  function closeModal() {
+    document.getElementById("usersModal").classList.remove("open");
+  }
+
+  document.getElementById("usersModal").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  loadStats();
+  loadBusinesses();
+  setInterval(loadBusinesses, 30000);
+</script>
+</body>
+</html>

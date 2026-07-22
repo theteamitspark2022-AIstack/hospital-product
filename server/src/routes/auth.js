@@ -111,4 +111,24 @@ router.get("/me", (req, res) => {
   }
 });
 
+// POST /api/auth/make-superadmin — promote a user by email (requires SUPERADMIN_SECRET header)
+router.post("/make-superadmin", async (req, res) => {
+  const secret = req.headers["x-superadmin-secret"];
+  if (!secret || secret !== process.env.SUPERADMIN_SECRET) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email required" });
+  try {
+    const { rows } = await db.query(
+      "UPDATE users SET role = 'superadmin' WHERE email = $1 RETURNING id, email, role",
+      [email.toLowerCase().trim()]
+    );
+    if (!rows.length) return res.status(404).json({ error: "User not found" });
+    res.json({ ok: true, user: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

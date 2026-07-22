@@ -16,6 +16,8 @@ const billingRouter = require("./routes/billing");
 const appointmentsRouter = require("./routes/appointments");
 const analyticsRouter = require("./routes/analytics");
 const calendarRouter = require("./routes/calendar");
+const superadminRouter = require("./routes/superadmin");
+const requireSuperAdmin = require("./middleware/requireSuperAdmin");
 const { startReminderScheduler } = require("./services/reminderService");
 const { authLimiter, apiLimiter } = require("./middleware/rateLimiter");
 const db = require("./models/db");
@@ -48,6 +50,7 @@ app.use("/api/billing", requireAuth, billingRouter);
 app.use("/api/appointments", requireAuth, appointmentsRouter);
 app.use("/api/analytics", requireAuth, analyticsRouter);
 app.use("/api/calendar", requireAuth, calendarRouter);
+app.use("/api/superadmin", requireSuperAdmin, superadminRouter);
 
 // Serve static assets (logo, etc.)
 app.use(express.static(path.join(__dirname, "../public")));
@@ -58,6 +61,10 @@ app.get("/login", (_req, res) => {
 
 app.get("/dashboard", requireAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/dashboard.html"));
+});
+
+app.get("/superadmin", requireSuperAdmin, (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/superadmin.html"));
 });
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
