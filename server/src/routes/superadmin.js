@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require("../models/db");
 const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
+const { getPlan } = require("../config/plans");
 
 // GET /api/superadmin/businesses
 router.get("/businesses", async (req, res) => {
@@ -122,6 +123,19 @@ router.post("/businesses/:id/team", async (req, res) => {
     return res.status(400).json({ error: "Password must be 8+ chars with uppercase and number" });
   }
   try {
+    // Enforce agent limit based on business plan
+    const bizRow = await db.query("SELECT plan FROM businesses WHERE id = $1", [req.params.id]);
+    if (bizRow.rows.length) {
+      const limits = getPlan(bizRow.rows[0].plan);
+      if (limits.agents !== Infinity) {
+        const countRow = await db.query("SELECT COUNT(*) FROM users WHERE business_id = $1", [req.params.id]);
+        if (parseInt(countRow.rows[0].count) >= limits.agents) {
+          return res.status(403).json({
+            error: `Agent limit reached for this plan (max ${limits.agents}). Upgrade the plan first.`,
+          });
+        }
+      }
+    }
     const hash = await bcrypt.hash(password, 10);
     const { rows } = await db.query(
       `INSERT INTO users (email, password_hash, business_id, role)

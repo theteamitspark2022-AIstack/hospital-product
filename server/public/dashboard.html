@@ -364,6 +364,18 @@
   <!-- Overview tab -->
   <div class="tab-panel active" id="tab-overview">
 
+    <!-- Plan usage banner -->
+    <div id="planBanner" style="background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:16px 20px;display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <span id="planName" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#64748B;"></span>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;" id="planUsageItems"></div>
+        </div>
+        <div id="planFeatureFlags" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      </div>
+      <div id="planLimitWarn" style="display:none;margin-top:10px;padding:8px 12px;background:#FEF2F2;border-radius:7px;font-size:12px;color:#DC2626;font-weight:600;"></div>
+    </div>
+
     <!-- Stat cards -->
     <div class="stats-grid" id="statsGrid">
       <div class="stat-card"><div class="stat-label">Total Calls</div><div class="stat-value" id="statCallsTotal">—</div><div class="stat-sub">all time</div></div>
@@ -737,6 +749,12 @@
   async function loadAnalytics() {
     try {
       const res = await fetch("/api/analytics");
+      if (res.status === 403) {
+        // Analytics not available on this plan — show placeholder values
+        ["statCallsTotal","statCallsToday","statCallsWeek","statConversations","statTickets","statAppts","statResolved"]
+          .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = "—"; });
+        return;
+      }
       const d = await res.json();
 
       document.getElementById("statCallsTotal").textContent = d.callsTotal ?? "—";
@@ -831,6 +849,58 @@
     });
   }
 
+  async function loadPlanUsage() {
+    try {
+      const res = await fetch("/api/plan/usage");
+      if (!res.ok) return;
+      const d = await res.json();
+      const banner = document.getElementById("planBanner");
+      banner.style.display = "block";
+
+      // Plan name badge
+      const colors = { trial:"#64748B", starter:"#4F46E5", growth:"#2563EB", pro:"#16A34A" };
+      const col = colors[d.plan] || "#64748B";
+      document.getElementById("planName").innerHTML =
+        `<span style="background:${col}1A;color:${col};padding:3px 10px;border-radius:20px;">${d.planLabel} Plan</span>`;
+
+      // Usage bars
+      const items = document.getElementById("planUsageItems");
+      function usageBar(label, used, max) {
+        if (max === null) return `<div style="font-size:12px;color:#64748B"><span style="font-weight:700;color:#0F172A">${label}</span> Unlimited</div>`;
+        const pct = Math.min(100, Math.round((used / max) * 100));
+        const barCol = pct >= 90 ? "#EF4444" : pct >= 70 ? "#F59E0B" : "#3182ED";
+        return `<div style="font-size:12px;color:#64748B;min-width:130px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-weight:700;color:#0F172A">${label}</span><span>${used}/${max}</span></div>
+          <div style="height:5px;background:#E2E8F0;border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barCol};border-radius:3px;transition:width .4s"></div></div>
+        </div>`;
+      }
+      items.innerHTML =
+        usageBar("Agents", d.usage.agents, d.limits.agents) +
+        usageBar("Calls this month", d.usage.callsThisMonth, d.limits.callsPerMonth);
+
+      // Feature flags
+      const flags = document.getElementById("planFeatureFlags");
+      function featureChip(label, enabled) {
+        return `<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:${enabled?"#F0FDF4":"#F1F5F9"};color:${enabled?"#16A34A":"#94A3B8"};">${enabled?"✓":"✗"} ${label}</span>`;
+      }
+      flags.innerHTML =
+        featureChip("WhatsApp", d.limits.whatsapp) +
+        featureChip("Calendar", d.limits.calendar) +
+        featureChip("Analytics", d.limits.analytics);
+
+      // Limit warning
+      const warn = document.getElementById("planLimitWarn");
+      const warnings = [];
+      if (d.limits.agents !== null && d.usage.agents >= d.limits.agents)
+        warnings.push(`Agent limit reached (${d.usage.agents}/${d.limits.agents}) — upgrade to add more team members.`);
+      if (d.limits.callsPerMonth !== null && d.usage.callsThisMonth >= d.limits.callsPerMonth * 0.9)
+        warnings.push(`Calls this month: ${d.usage.callsThisMonth}/${d.limits.callsPerMonth} — approaching your monthly limit.`);
+      if (warnings.length) { warn.textContent = warnings.join(" "); warn.style.display = "block"; }
+      else warn.style.display = "none";
+
+    } catch {}
+  }
+
   function refresh() {
     loadStatus();
     loadCalls();
@@ -838,6 +908,7 @@
   }
 
   refresh();
+  loadPlanUsage();
   loadSettings();
   loadCalendarStatus();
   setInterval(refresh, 30000);

@@ -17,7 +17,9 @@ const appointmentsRouter = require("./routes/appointments");
 const analyticsRouter = require("./routes/analytics");
 const calendarRouter = require("./routes/calendar");
 const superadminRouter = require("./routes/superadmin");
+const planRouter = require("./routes/plan");
 const requireSuperAdmin = require("./middleware/requireSuperAdmin");
+const requirePlanFeature = require("./middleware/requirePlanFeature");
 const { startReminderScheduler } = require("./services/reminderService");
 const { authLimiter, apiLimiter } = require("./middleware/rateLimiter");
 const db = require("./models/db");
@@ -48,8 +50,9 @@ app.use("/api/buddy", requireAuth, buddyRouter);
 app.use("/api/tickets", requireAuth, ticketsRouter);
 app.use("/api/billing", requireAuth, billingRouter);
 app.use("/api/appointments", requireAuth, appointmentsRouter);
-app.use("/api/analytics", requireAuth, analyticsRouter);
-app.use("/api/calendar", requireAuth, calendarRouter);
+app.use("/api/analytics", requireAuth, requirePlanFeature("analytics"), analyticsRouter);
+app.use("/api/calendar", requireAuth, requirePlanFeature("calendar"), calendarRouter);
+app.use("/api/plan", requireAuth, planRouter);
 app.use("/api/superadmin", requireSuperAdmin, superadminRouter);
 
 // Serve static assets (logo, etc.)
