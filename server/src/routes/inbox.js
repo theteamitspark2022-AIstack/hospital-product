@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../models/db");
 const twilio = require("twilio");
+const { detectKeyword, getAutoReply } = require("../services/buddyService");
 
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const FROM = process.env.TWILIO_FROM_NUMBER;
@@ -11,12 +12,30 @@ function toAddress(number) {
   return CHANNEL === "whatsapp" ? `whatsapp:${number}` : number;
 }
 
+async function getBusinessSettings() {
+  if (!db.isConnected()) return {};
+  try {
+    const { rows } = await db.query("SELECT business_name, sector FROM settings WHERE id = 'default'");
+    return rows[0] || {};
+  } catch { return {}; }
+}
+
+async function sendWhatsApp(to, body) {
+  const msg = await client.messages.create({
+    from: toAddress(FROM),
+    to: toAddress(to),
+    body,
+  });
+  return msg.sid;
+}
+
 // POST /api/inbox/inbound — Twilio webhook for incoming WhatsApp messages
 router.post("/inbound", async (req, res) => {
   const { From, Body, MessageSid } = req.body;
   if (!From || !Body) return res.sendStatus(204);
 
   const customerNumber = From.replace("whatsapp:", "");
+  const keyword = detectKeyword(Body);
 
   if (db.isConnected()) {
     try {
@@ -30,7 +49,6 @@ router.post("/inbound", async (req, res) => {
         [customerNumber, Body]
       );
 
-      // Get conversation id
       const { rows } = await db.query(
         "SELECT id FROM conversations WHERE customer_number = $1", [customerNumber]
       );
@@ -42,6 +60,49 @@ router.post("/inbound", async (req, res) => {
            VALUES ($1, 'inbound', $2, $3)`,
           [convId, Body, MessageSid]
         );
+
+        // Handle keyword shortcuts
+        if (keyword === "stop") {
+          const reply = "You've been unsubscribed and won't receive further messages from us. Take care!";
+          const sid = await sendWhatsApp(customerNumber, reply);
+          await db.query(
+            "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
+            [convId, reply, sid]
+          );
+          await db.query("UPDATE conversations SET status = 'resolved' WHERE id = $1", [convId]);
+
+        } else if (keyword === "confirm") {
+          const reply = "Brilliant — your appointment is confirmed! We'll see you then. 😊";
+          const sid = await sendWhatsApp(customerNumber, reply);
+          await db.query(
+            "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
+            [convId, reply, sid]
+          );
+          await db.query("UPDATE conversations SET status = 'resolved' WHERE id = $1", [convId]);
+
+        } else if (keyword === "cancel") {
+          const reply = "No problem — your appointment has been cancelled. Call us if you'd like to rebook.";
+          const sid = await sendWhatsApp(customerNumber, reply);
+          await db.query(
+            "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
+            [convId, reply, sid]
+          );
+          await db.query("UPDATE conversations SET status = 'resolved' WHERE id = $1", [convId]);
+
+        } else {
+          // Free-text — try Buddy AI auto-reply
+          const settings = await getBusinessSettings();
+          const aiReply = await getAutoReply(Body, settings.business_name, settings.sector);
+
+          if (aiReply) {
+            const sid = await sendWhatsApp(customerNumber, aiReply);
+            await db.query(
+              "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
+              [convId, aiReply, sid]
+            );
+          }
+          // Thread stays open in inbox for human agent regardless
+        }
       }
     } catch (err) {
       console.error("Inbox inbound failed:", err.message);
