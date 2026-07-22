@@ -5,92 +5,237 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AIVoiceConnect — Sign In</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f4f6f9; min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
+      background: #F8FAFC;
+      min-height: 100vh;
+      display: flex;
+      -webkit-font-smoothing: antialiased;
     }
-    .card {
-      background: #fff; border-radius: 16px; padding: 40px;
-      width: 100%; max-width: 420px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+
+    /* ── Left panel (brand) ── */
+    .brand-panel {
+      display: none;
+      width: 42%;
+      background: linear-gradient(135deg, #020817 0%, #0d1f3c 60%, #1368D8 100%);
+      padding: 48px;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
     }
-    .logo { text-align: center; margin-bottom: 28px; }
-    .logo h1 { font-size: 22px; font-weight: 800; color: #1a1a2e; }
-    .logo p { font-size: 13px; color: #64748b; margin-top: 4px; }
+    .brand-panel::before {
+      content: "";
+      position: absolute;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(49,130,237,0.18) 0%, transparent 70%);
+      top: -80px; right: -120px;
+    }
+    .brand-panel::after {
+      content: "";
+      position: absolute;
+      width: 280px; height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(49,130,237,0.12) 0%, transparent 70%);
+      bottom: 60px; left: -60px;
+    }
+    .brand-logo { height: 36px; width: auto; position: relative; z-index: 1; }
+    .brand-tagline {
+      position: relative; z-index: 1;
+    }
+    .brand-tagline h2 {
+      font-size: 26px; font-weight: 800; color: #fff;
+      line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 14px;
+    }
+    .brand-tagline p { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+    .brand-features { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 12px; }
+    .brand-feature {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .brand-feature-icon {
+      width: 32px; height: 32px; background: rgba(49,130,237,0.25);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 15px; flex-shrink: 0;
+    }
+    .brand-feature-text { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500; }
 
-    .tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
-    .tab { flex: 1; text-align: center; padding: 10px; font-size: 14px; font-weight: 600;
-      color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-    .tab.active { color: #1a1a2e; border-bottom-color: #1a1a2e; }
+    @media (min-width: 768px) { .brand-panel { display: flex; } }
 
+    /* ── Right panel (form) ── */
+    .form-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+    }
+    .form-card {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    /* Mobile logo */
+    .mobile-logo {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 32px;
+    }
+    .mobile-logo img { height: 28px; width: auto; }
+    .mobile-logo span {
+      font-size: 14px; font-weight: 600; color: #64748B;
+    }
+    @media (min-width: 768px) { .mobile-logo { display: none; } }
+
+    .form-heading { margin-bottom: 28px; }
+    .form-heading h1 { font-size: 22px; font-weight: 800; color: #020817; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .form-heading p { font-size: 14px; color: #64748B; }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 0;
+      background: #F1F5F9; border-radius: 10px; padding: 4px;
+      margin-bottom: 24px;
+    }
+    .tab {
+      flex: 1; text-align: center; padding: 9px 12px;
+      font-size: 13px; font-weight: 600; color: #64748B;
+      cursor: pointer; border-radius: 7px; transition: all 0.15s;
+    }
+    .tab.active {
+      background: #fff; color: #020817;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* Form */
     .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    label { display: block; font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
     input {
-      width: 100%; padding: 11px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
-      font-size: 14px; color: #1a1a2e; outline: none; font-family: inherit;
+      width: 100%; padding: 11px 14px; border: 1px solid #E2E8F0;
+      border-radius: 9px; font-size: 14px; color: #020817;
+      outline: none; font-family: inherit; background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    input:focus { border-color: #4f46e5; }
+    input:focus { border-color: #3182ED; box-shadow: 0 0 0 3px #EBF4FF; }
+    input::placeholder { color: #94A3B8; }
 
     .btn {
-      width: 100%; padding: 13px; background: #1a1a2e; color: #fff;
-      border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
-      cursor: pointer; margin-top: 8px;
+      width: 100%; padding: 13px; margin-top: 8px;
+      background: linear-gradient(135deg, #3182ED, #1368D8);
+      color: #fff; border: none; border-radius: 9px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      letter-spacing: 0.01em;
+      box-shadow: 0 2px 8px rgba(49,130,237,0.35);
+      transition: opacity 0.15s, box-shadow 0.15s;
     }
-    .btn:hover { background: #334155; }
-    .btn:disabled { background: #94a3b8; cursor: default; }
+    .btn:hover { opacity: 0.92; box-shadow: 0 4px 14px rgba(49,130,237,0.4); }
+    .btn:disabled { background: #94A3B8; cursor: default; box-shadow: none; }
 
-    .error { background: #fee2e2; color: #dc2626; border-radius: 8px;
-      padding: 10px 14px; font-size: 13px; margin-bottom: 16px; display: none; }
+    .error {
+      background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;
+      border-radius: 8px; padding: 11px 14px;
+      font-size: 13px; margin-bottom: 16px; display: none;
+      font-weight: 500;
+    }
     .error.visible { display: block; }
 
     .panel { display: none; }
     .panel.active { display: block; }
+
+    .form-footer { text-align: center; font-size: 12px; color: #94A3B8; margin-top: 24px; line-height: 1.6; }
+    .form-footer strong { color: #3182ED; }
   </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">
-    <h1>AIVoiceConnect</h1>
-    <p>Powered by TheTeam ITSpark</p>
+
+<!-- Left brand panel (desktop only) -->
+<div class="brand-panel">
+  <img src="/logo.webp" alt="TheTeam ITSpark" class="brand-logo" />
+
+  <div class="brand-tagline">
+    <h2>AI-Powered Business Communication</h2>
+    <p>Never miss a customer call again. Automate responses, manage tickets, and book appointments — all in one place.</p>
   </div>
 
-  <div class="tabs">
-    <div class="tab active" onclick="showTab('login')">Sign In</div>
-    <div class="tab" onclick="showTab('signup')">Create Account</div>
+  <div class="brand-features">
+    <div class="brand-feature">
+      <div class="brand-feature-icon">📞</div>
+      <div class="brand-feature-text">Instant missed call WhatsApp responses</div>
+    </div>
+    <div class="brand-feature">
+      <div class="brand-feature-icon">🎫</div>
+      <div class="brand-feature-text">Smart ticket & SLA management</div>
+    </div>
+    <div class="brand-feature">
+      <div class="brand-feature-icon">📅</div>
+      <div class="brand-feature-text">Automated appointment reminders</div>
+    </div>
+    <div class="brand-feature">
+      <div class="brand-feature-icon">🤖</div>
+      <div class="brand-feature-text">Buddy AI for intelligent responses</div>
+    </div>
   </div>
+</div>
 
-  <div id="error" class="error"></div>
+<!-- Right form panel -->
+<div class="form-panel">
+  <div class="form-card">
 
-  <!-- Login panel -->
-  <div class="panel active" id="panel-login">
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="loginEmail" placeholder="you@example.com" />
+    <div class="mobile-logo">
+      <img src="/logo.webp" alt="TheTeam ITSpark" />
+      <span>AIVoiceConnect</span>
     </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="••••••••" />
-    </div>
-    <button class="btn" id="loginBtn" onclick="login()">Sign In</button>
-  </div>
 
-  <!-- Signup panel -->
-  <div class="panel" id="panel-signup">
-    <div class="form-group">
-      <label>Business Name</label>
-      <input type="text" id="signupBusiness" placeholder="e.g. Smith & Sons Plumbing" />
+    <div class="form-heading">
+      <h1>Welcome back</h1>
+      <p>Sign in to your AIVoiceConnect dashboard</p>
     </div>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="signupEmail" placeholder="you@example.com" />
+
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('login')">Sign In</div>
+      <div class="tab" onclick="showTab('signup')">Create Account</div>
     </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="signupPassword" placeholder="Min 8 chars, 1 uppercase, 1 number" />
+
+    <div id="error" class="error"></div>
+
+    <!-- Login panel -->
+    <div class="panel active" id="panel-login">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" />
+      </div>
+      <button class="btn" id="loginBtn" onclick="login()">Sign In</button>
     </div>
-    <button class="btn" id="signupBtn" onclick="signup()">Create Account</button>
+
+    <!-- Signup panel -->
+    <div class="panel" id="panel-signup">
+      <div class="form-group">
+        <label>Business Name</label>
+        <input type="text" id="signupBusiness" placeholder="e.g. Smith & Sons Plumbing" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="Min 8 chars, 1 uppercase, 1 number" />
+      </div>
+      <button class="btn" id="signupBtn" onclick="signup()">Create Account</button>
+    </div>
+
+    <div class="form-footer">
+      Powered by <strong>TheTeam ITSpark</strong> · UK-based AI solutions
+    </div>
   </div>
 </div>
 
@@ -102,6 +247,15 @@
     document.querySelectorAll(".panel").forEach(p => {
       p.classList.toggle("active", p.id === "panel-" + tab);
     });
+    const h = document.querySelector(".form-heading h1");
+    const sub = document.querySelector(".form-heading p");
+    if (tab === "login") {
+      h.textContent = "Welcome back";
+      sub.textContent = "Sign in to your AIVoiceConnect dashboard";
+    } else {
+      h.textContent = "Get started";
+      sub.textContent = "Create your AIVoiceConnect account";
+    }
     hideError();
   }
 
@@ -115,7 +269,6 @@
     document.getElementById("error").classList.remove("visible");
   }
 
-  // Allow Enter key to submit
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Enter") return;
     if (document.getElementById("panel-login").classList.contains("active")) login();
@@ -128,7 +281,7 @@
     if (!email || !password) return showError("Please enter your email and password.");
 
     const btn = document.getElementById("loginBtn");
-    btn.disabled = true; btn.textContent = "Signing in...";
+    btn.disabled = true; btn.textContent = "Signing in…";
     hideError();
 
     try {
@@ -158,7 +311,7 @@
     if (!/[0-9]/.test(password)) return showError("Password must contain at least one number.");
 
     const btn = document.getElementById("signupBtn");
-    btn.disabled = true; btn.textContent = "Creating account...";
+    btn.disabled = true; btn.textContent = "Creating account…";
     hideError();
 
     try {

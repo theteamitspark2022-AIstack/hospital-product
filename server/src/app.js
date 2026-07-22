@@ -42,6 +42,9 @@ app.use("/api/billing", requireAuth, billingRouter);
 app.use("/api/appointments", requireAuth, appointmentsRouter);
 app.use("/api/analytics", requireAuth, analyticsRouter);
 
+// Serve static assets (logo, etc.)
+app.use(express.static(path.join(__dirname, "../public")));
+
 app.get("/login", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/login.html"));
 });
