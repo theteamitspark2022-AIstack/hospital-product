@@ -16,6 +16,7 @@ const billingRouter = require("./routes/billing");
 const appointmentsRouter = require("./routes/appointments");
 const analyticsRouter = require("./routes/analytics");
 const { startReminderScheduler } = require("./services/reminderService");
+const { authLimiter, apiLimiter } = require("./middleware/rateLimiter");
 const db = require("./models/db");
 
 const app = express();
@@ -27,6 +28,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(requestLogger);
+
+// Rate limiting
+app.use("/api/auth", authLimiter);
+app.use("/api", apiLimiter);
 
 // Public routes
 app.use("/api/auth", authRouter);
