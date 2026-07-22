@@ -880,6 +880,8 @@
     const msg    = document.getElementById("apptMsg");
 
     if (!number || !date) { msg.textContent = "Number and date are required"; msg.className = "save-msg err"; return; }
+    if (/\s/.test(number)) { msg.textContent = "Phone number must not contain spaces — use format +447911123456"; msg.className = "save-msg err"; return; }
+    if (!/^\+\d{7,15}$/.test(number)) { msg.textContent = "Phone number must start with + and contain only digits — e.g. +447911123456"; msg.className = "save-msg err"; return; }
 
     try {
       const res = await fetch("/api/appointments", {
