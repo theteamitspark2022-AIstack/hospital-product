@@ -102,37 +102,4 @@ router.get("/me", (req, res) => {
   }
 });
 
-// POST /api/auth/fix-orphaned-data — one-time: assign NULL business_id rows to a specific account
-router.post("/fix-orphaned-data", async (req, res) => {
-  const { email, secret } = req.body;
-  if (secret !== process.env.ADMIN_SETUP_SECRET) {
-    return res.status(403).json({ error: "Invalid secret" });
-  }
-  try {
-    const { rows } = await db.query(
-      "SELECT u.business_id FROM users u WHERE u.email = $1", [email.toLowerCase()]
-    );
-    if (!rows.length) return res.status(404).json({ error: "User not found" });
-    const businessId = rows[0].business_id;
-
-    const calls = await db.query("UPDATE calls SET business_id = $1 WHERE business_id IS NULL", [businessId]);
-    const convs = await db.query("UPDATE conversations SET business_id = $1 WHERE business_id IS NULL", [businessId]);
-    const tickets = await db.query("UPDATE tickets SET business_id = $1 WHERE business_id IS NULL", [businessId]);
-    const settings = await db.query("UPDATE settings SET business_id = $1 WHERE business_id IS NULL", [businessId]);
-
-    res.json({
-      ok: true,
-      businessId,
-      updated: {
-        calls: calls.rowCount,
-        conversations: convs.rowCount,
-        tickets: tickets.rowCount,
-        settings: settings.rowCount,
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 module.exports = router;
