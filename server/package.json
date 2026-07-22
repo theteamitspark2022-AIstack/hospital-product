@@ -1,7 +1,7 @@
 {
   "name": "hospital-missed-call-mvp",
   "version": "1.1.0",
-  "description": "Converts missed hospital calls into WhatsApp/SMS patient conversations",
+  "description": "TheTeam ITSpark AIVoiceConnect — turns missed calls into automated WhatsApp/SMS conversations",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
