@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIVoiceConnect — Sign In</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f6f9; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      background: #fff; border-radius: 16px; padding: 40px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    }
+    .logo { text-align: center; margin-bottom: 28px; }
+    .logo h1 { font-size: 22px; font-weight: 800; color: #1a1a2e; }
+    .logo p { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+    .tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px; }
+    .tab { flex: 1; text-align: center; padding: 10px; font-size: 14px; font-weight: 600;
+      color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .tab.active { color: #1a1a2e; border-bottom-color: #1a1a2e; }
+
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    input {
+      width: 100%; padding: 11px 14px; border: 1px solid #e2e8f0; border-radius: 8px;
+      font-size: 14px; color: #1a1a2e; outline: none; font-family: inherit;
+    }
+    input:focus { border-color: #4f46e5; }
+
+    .btn {
+      width: 100%; padding: 13px; background: #1a1a2e; color: #fff;
+      border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
+      cursor: pointer; margin-top: 8px;
+    }
+    .btn:hover { background: #334155; }
+    .btn:disabled { background: #94a3b8; cursor: default; }
+
+    .error { background: #fee2e2; color: #dc2626; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px; margin-bottom: 16px; display: none; }
+    .error.visible { display: block; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <h1>AIVoiceConnect</h1>
+    <p>Powered by TheTeam ITSpark</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('login')">Sign In</div>
+    <div class="tab" onclick="showTab('signup')">Create Account</div>
+  </div>
+
+  <div id="error" class="error"></div>
+
+  <!-- Login panel -->
+  <div class="panel active" id="panel-login">
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" />
+    </div>
+    <button class="btn" id="loginBtn" onclick="login()">Sign In</button>
+  </div>
+
+  <!-- Signup panel -->
+  <div class="panel" id="panel-signup">
+    <div class="form-group">
+      <label>Business Name</label>
+      <input type="text" id="signupBusiness" placeholder="e.g. Smith & Sons Plumbing" />
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="signupEmail" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Password (min 8 characters)</label>
+      <input type="password" id="signupPassword" placeholder="••••••••" />
+    </div>
+    <button class="btn" id="signupBtn" onclick="signup()">Create Account</button>
+  </div>
+</div>
+
+<script>
+  function showTab(tab) {
+    document.querySelectorAll(".tab").forEach((t, i) => {
+      t.classList.toggle("active", ["login","signup"][i] === tab);
+    });
+    document.querySelectorAll(".panel").forEach(p => {
+      p.classList.toggle("active", p.id === "panel-" + tab);
+    });
+    hideError();
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("error");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+
+  function hideError() {
+    document.getElementById("error").classList.remove("visible");
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    if (document.getElementById("panel-login").classList.contains("active")) login();
+    else signup();
+  });
+
+  async function login() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    if (!email || !password) return showError("Please enter your email and password.");
+
+    const btn = document.getElementById("loginBtn");
+    btn.disabled = true; btn.textContent = "Signing in...";
+    hideError();
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error || "Login failed"); btn.disabled = false; btn.textContent = "Sign In"; return; }
+      window.location.href = "/dashboard";
+    } catch {
+      showError("Network error — please try again.");
+      btn.disabled = false; btn.textContent = "Sign In";
+    }
+  }
+
+  async function signup() {
+    const businessName = document.getElementById("signupBusiness").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const password = document.getElementById("signupPassword").value;
+    if (!businessName || !email || !password) return showError("Please fill in all fields.");
+    if (password.length < 8) return showError("Password must be at least 8 characters.");
+
+    const btn = document.getElementById("signupBtn");
+    btn.disabled = true; btn.textContent = "Creating account...";
+    hideError();
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, businessName }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error || "Signup failed"); btn.disabled = false; btn.textContent = "Create Account"; return; }
+      window.location.href = "/dashboard";
+    } catch {
+      showError("Network error — please try again.");
+      btn.disabled = false; btn.textContent = "Create Account";
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+const express = require("express");
+const router = express.Router();
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const db = require("../models/db");
+
+const SECRET = process.env.JWT_SECRET || "changeme-set-JWT_SECRET-in-env";
+const COOKIE_NAME = "avc_token";
+
+function setAuthCookie(res, payload) {
+  const token = jwt.sign(payload, SECRET, { expiresIn: "7d" });
+  res.cookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+}
+
+// POST /api/auth/signup
+router.post("/signup", async (req, res) => {
+  const { email, password, businessName } = req.body;
+  if (!email || !password || !businessName) {
+    return res.status(400).json({ error: "email, password and businessName are required" });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: "Password must be at least 8 characters" });
+  }
+
+  try {
+    // Check email not already used
+    const existing = await db.query("SELECT id FROM users WHERE email = $1", [email.toLowerCase()]);
+    if (existing.rows.length) return res.status(409).json({ error: "Email already registered" });
+
+    // Create business
+    const biz = await db.query(
+      "INSERT INTO businesses (name) VALUES ($1) RETURNING id", [businessName]
+    );
+    const businessId = biz.rows[0].id;
+
+    // Seed default settings for the business
+    await db.query(
+      `INSERT INTO settings (id, business_id, business_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+      [`biz_${businessId}`, businessId, businessName]
+    );
+
+    // Hash password and create user
+    const hash = await bcrypt.hash(password, 10);
+    const user = await db.query(
+      "INSERT INTO users (email, password_hash, business_id, role) VALUES ($1, $2, $3, 'owner') RETURNING id",
+      [email.toLowerCase(), hash, businessId]
+    );
+
+    setAuthCookie(res, { userId: user.rows[0].id, businessId, role: "owner" });
+    res.status(201).json({ ok: true, businessId });
+  } catch (err) {
+    console.error("Signup error:", err.message);
+    res.status(500).json({ error: "Signup failed" });
+  }
+});
+
+// POST /api/auth/login
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: "email and password required" });
+
+  try {
+    const { rows } = await db.query(
+      "SELECT u.id, u.password_hash, u.business_id, u.role FROM users u WHERE u.email = $1",
+      [email.toLowerCase()]
+    );
+    if (!rows.length) return res.status(401).json({ error: "Invalid email or password" });
+
+    const user = rows[0];
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: "Invalid email or password" });
+
+    setAuthCookie(res, { userId: user.id, businessId: user.business_id, role: user.role });
+    res.json({ ok: true, businessId: user.business_id });
+  } catch (err) {
+    console.error("Login error:", err.message);
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+// POST /api/auth/logout
+router.post("/logout", (_req, res) => {
+  res.clearCookie(COOKIE_NAME);
+  res.json({ ok: true });
+});
+
+// GET /api/auth/me — check current session
+router.get("/me", (req, res) => {
+  const token = req.cookies?.[COOKIE_NAME];
+  if (!token) return res.status(401).json({ error: "Not authenticated" });
+  try {
+    const payload = jwt.verify(token, SECRET);
+    res.json({ userId: payload.userId, businessId: payload.businessId, role: payload.role });
+  } catch {
+    res.status(401).json({ error: "Session expired" });
+  }
+});
+
+module.exports = router;

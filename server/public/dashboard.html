@@ -130,6 +130,7 @@
   <div class="header-right">
     <div class="live-badge" id="liveBadge">LIVE</div>
     <div class="progress-pill">Setup: <span id="progressPct">0%</span></div>
+    <button onclick="logout()" style="background:#334155;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">Sign Out</button>
   </div>
 </header>
 
@@ -251,6 +252,21 @@
 </main>
 
 <script>
+  // Auth check — redirect to login if not authenticated
+  (async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (!res.ok) window.location.href = "/login";
+    } catch {
+      window.location.href = "/login";
+    }
+  })();
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  }
+
   const stepDescriptions = {
     signup:       "Your account is created and ready.",
     verify_email: "Your email address has been verified.",
