@@ -54,20 +54,23 @@ router.post("/inbound", async (req, res) => {
 
   if (db.isConnected()) {
     try {
-      // Upsert conversation thread
+      // Upsert conversation — set opt_in on first message
       await db.query(
-        `INSERT INTO conversations (customer_number, status, last_message, last_message_at)
-         VALUES ($1, 'open', $2, NOW())
+        `INSERT INTO conversations (customer_number, status, last_message, last_message_at, opt_in_whatsapp, opt_in_at)
+         VALUES ($1, 'open', $2, NOW(), true, NOW())
          ON CONFLICT (customer_number) DO UPDATE SET
            last_message = $2, last_message_at = NOW(),
-           status = CASE WHEN conversations.status = 'resolved' THEN 'open' ELSE conversations.status END`,
+           status = CASE WHEN conversations.status = 'resolved' THEN 'open' ELSE conversations.status END,
+           opt_in_whatsapp = true,
+           opt_in_at = COALESCE(conversations.opt_in_at, NOW())`,
         [customerNumber, Body]
       );
 
       const { rows } = await db.query(
-        "SELECT id FROM conversations WHERE customer_number = $1", [customerNumber]
+        "SELECT id, opted_out_at FROM conversations WHERE customer_number = $1", [customerNumber]
       );
-      const convId = rows[0]?.id;
+      const conv = rows[0];
+      const convId = conv?.id;
 
       if (convId) {
         await db.query(
@@ -76,17 +79,37 @@ router.post("/inbound", async (req, res) => {
           [convId, Body, MessageSid]
         );
 
-        // Handle keyword shortcuts
+        // STOP — opt out immediately, send final SMS, no further WhatsApp
         if (keyword === "stop") {
-          const reply = "You've been unsubscribed and won't receive further messages from us. Take care!";
+          await db.query(
+            "UPDATE conversations SET opted_out_at = NOW(), opt_in_whatsapp = false, status = 'resolved' WHERE id = $1",
+            [convId]
+          );
+          const reply = "You've been unsubscribed. No further messages will be sent. Take care!";
           const sid = await sendWhatsApp(customerNumber, reply);
           await db.query(
             "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
             [convId, reply, sid]
           );
-          await db.query("UPDATE conversations SET status = 'resolved' WHERE id = $1", [convId]);
+          console.log(`GDPR opt-out recorded for ${customerNumber} at ${new Date().toISOString()}`);
+          return res.sendStatus(204);
+        }
 
-        } else if (keyword === "confirm") {
+        // Block all outbound to opted-out numbers
+        if (conv.opted_out_at) {
+          console.log(`Blocked outbound to opted-out number ${customerNumber}`);
+          return res.sendStatus(204);
+        }
+
+        // Send acknowledgement immediately (AC4: within 10s)
+        const ack = "Thanks for your message — we've received it and will get back to you shortly. 👍";
+        const ackSid = await sendWhatsApp(customerNumber, ack);
+        await db.query(
+          "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
+          [convId, ack, ackSid]
+        );
+
+        if (keyword === "confirm") {
           const reply = "Brilliant — your appointment is confirmed! We'll see you then. 😊";
           const sid = await sendWhatsApp(customerNumber, reply);
           await db.query(
@@ -110,10 +133,9 @@ router.post("/inbound", async (req, res) => {
             await autoRaiseTicket(convId, customerNumber, Body);
           }
 
-          // Free-text — try Buddy AI auto-reply
+          // Free-text — Buddy AI reply (in addition to ack already sent)
           const settings = await getBusinessSettings();
           const aiReply = await getAutoReply(Body, settings.business_name, settings.sector);
-
           if (aiReply) {
             const sid = await sendWhatsApp(customerNumber, aiReply);
             await db.query(
@@ -121,7 +143,7 @@ router.post("/inbound", async (req, res) => {
               [convId, aiReply, sid]
             );
           }
-          // Thread stays open in inbox for human agent regardless
+          // Thread stays open in inbox for human agent
         }
       }
     } catch (err) {

@@ -70,9 +70,18 @@ async function migrate() {
       last_message      TEXT,
       last_message_at   TIMESTAMPTZ DEFAULT NOW(),
       resolved_at       TIMESTAMPTZ,
+      opt_in_whatsapp   BOOLEAN DEFAULT false,
+      opt_in_at         TIMESTAMPTZ,
+      opted_out_at      TIMESTAMPTZ,
       created_at        TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    ALTER TABLE conversations
+      ADD COLUMN IF NOT EXISTS opt_in_whatsapp BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS opt_in_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS opted_out_at TIMESTAMPTZ
+  `).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS messages (
       id                SERIAL PRIMARY KEY,
