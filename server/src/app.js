@@ -7,6 +7,7 @@ const callsRouter = require("./routes/calls");
 const statusRouter = require("./routes/status");
 const settingsRouter = require("./routes/settings");
 const inboxRouter = require("./routes/inbox");
+const buddyRouter = require("./routes/buddy");
 const db = require("./models/db");
 
 const app = express();
@@ -19,6 +20,7 @@ app.use("/api/calls", callsRouter);
 app.use("/api/status", statusRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/inbox", inboxRouter);
+app.use("/api/buddy", buddyRouter);
 
 app.get("/dashboard", (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/dashboard.html"));
