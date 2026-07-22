@@ -5,6 +5,7 @@
     "test:e2e:report": "npx playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1"
+    "@playwright/test": "^1.61.1",
+    "wait-on": "^9.1.0"
   }
 }
