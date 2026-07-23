@@ -18,6 +18,7 @@ const analyticsRouter = require("./routes/analytics");
 const calendarRouter = require("./routes/calendar");
 const superadminRouter = require("./routes/superadmin");
 const seedRouter = require("./routes/seed");
+const voiceRouter = require("./routes/voice");
 const planRouter = require("./routes/plan");
 const requireSuperAdmin = require("./middleware/requireSuperAdmin");
 const requirePlanFeature = require("./middleware/requirePlanFeature");
@@ -43,6 +44,7 @@ app.use("/api", apiLimiter);
 // Public routes
 app.use("/api/auth", authRouter);
 app.use("/api/calls", callsRouter);       // Twilio webhooks — public (signature-verified)
+app.use("/api/voice", voiceRouter);       // Twilio Voice AI — public (signature-verified)
 app.use("/api/inbox", inboxRouter);       // Twilio webhooks — public (signature-verified)
 
 // Protected routes

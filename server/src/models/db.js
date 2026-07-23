@@ -161,6 +161,19 @@ async function migrate() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS voice_sessions (
+      id             SERIAL PRIMARY KEY,
+      call_sid       VARCHAR(64) UNIQUE NOT NULL,
+      business_id    VARCHAR(64),
+      caller_number  VARCHAR(32),
+      messages       JSONB DEFAULT '[]',
+      booking        JSONB,
+      ended          BOOLEAN DEFAULT false,
+      created_at     TIMESTAMPTZ DEFAULT NOW(),
+      updated_at     TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
   console.log("DB migration complete");
 }
 

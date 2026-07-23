@@ -186,4 +186,73 @@ async function handleBookingConversation(messageHistory, businessName, sector, t
   }
 }
 
-module.exports = { detectKeyword, getAutoReply, handleBookingConversation };
+const VOICE_SYSTEM = `You are {BUSINESS}'s AI receptionist answering a phone call. You are speaking out loud — keep every response SHORT (1-2 sentences max), natural, and conversational. No bullet points, no lists, no markdown.
+
+Your job:
+1. Greet the caller warmly and ask how you can help.
+2. If they want to book an appointment, collect their full name, preferred date, and preferred time naturally across the conversation.
+3. Once you have all three details, confirm them back and output this tag on its own line (never read it aloud):
+   [BOOK:name=<name>,date=<YYYY-MM-DD>,time=<HH:MM>,notes=<reason if given>]
+   Then say your spoken confirmation on the next line.
+4. If they want to cancel, reschedule, or have a general query, handle it naturally. Tell them a team member will call back if needed.
+5. To end the call naturally say exactly: [HANGUP]
+
+Today is {TODAY}. If they say "tomorrow" or "next Monday", resolve to a real date.
+
+RULES:
+- Max 2 sentences per reply — this is a phone call
+- Sound warm and human
+- Never say you are an AI
+- Never read out the [BOOK:...] or [HANGUP] tags`;
+
+async function handleVoiceConversation(messages, businessName, sector, today) {
+  const groq = getClient();
+  if (!groq) return { reply: "Sorry, I'm unable to help right now. Please call back later.", booking: null, hangup: false };
+
+  const systemPrompt = VOICE_SYSTEM
+    .replace("{BUSINESS}", businessName || "us")
+    .replace("{TODAY}", today || new Date().toISOString().split("T")[0]);
+
+  const groqMessages = messages.map(m => ({
+    role: m.role,
+    content: m.content,
+  }));
+
+  try {
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 150,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...groqMessages,
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content?.trim() || "";
+
+    const bookMatch = raw.match(/\[BOOK:([^\]]+)\]/);
+    let booking = null;
+    if (bookMatch) {
+      const parts = Object.fromEntries(
+        bookMatch[1].split(",").map(p => {
+          const [k, ...v] = p.split("=");
+          return [k.trim(), v.join("=").trim()];
+        })
+      );
+      booking = { name: parts.name || null, date: parts.date || null, time: parts.time || null, notes: parts.notes || null };
+    }
+
+    const hangup = raw.includes("[HANGUP]");
+    const reply = raw
+      .replace(/\[BOOK:[^\]]+\]\n?/, "")
+      .replace("[HANGUP]", "")
+      .trim() || "Is there anything else I can help you with?";
+
+    return { reply, booking, hangup };
+  } catch (err) {
+    console.error("Voice AI error:", err.message);
+    return { reply: "Sorry, I didn't catch that. Could you repeat that please?", booking: null, hangup: false };
+  }
+}
+
+module.exports = { detectKeyword, getAutoReply, handleBookingConversation, handleVoiceConversation };
