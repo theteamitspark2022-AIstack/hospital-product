@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIVoiceConnect — AI Receptionist for UK Businesses</title>
+  <meta name="description" content="AIVoiceConnect answers your calls, replies on WhatsApp, and books appointments 24/7 — on your existing number. Built for UK clinics and small businesses." />
+  <meta name="keywords" content="AI receptionist UK, WhatsApp booking, missed call reply, appointment booking AI, voice AI UK, medical receptionist software" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://hospital-product.onrender.com/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://hospital-product.onrender.com/" />
+  <meta property="og:title" content="AIVoiceConnect — AI Receptionist for UK Businesses" />
+  <meta property="og:description" content="Never miss a patient or booking again. AIVoiceConnect handles calls, WhatsApp, and SMS 24/7 on your existing number." />
+  <meta property="og:site_name" content="AIVoiceConnect" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AIVoiceConnect — AI Receptionist for UK Businesses" />
+  <meta name="twitter:description" content="Never miss a patient or booking again. AIVoiceConnect handles calls, WhatsApp, and SMS 24/7 on your existing number." />
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "AIVoiceConnect",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "description": "AI receptionist that answers calls, handles WhatsApp bookings, and sends missed-call replies — 24/7 for UK businesses.",
+    "offers": [
+      { "@type": "Offer", "name": "Starter", "price": "49", "priceCurrency": "GBP", "billingIncrement": "P1M" },
+      { "@type": "Offer", "name": "Professional", "price": "99", "priceCurrency": "GBP", "billingIncrement": "P1M" }
+    ],
+    "provider": { "@type": "Organization", "name": "ITSpark", "url": "https://hospital-product.onrender.com" }
+  }
+  </script>
+
+  <!-- Favicon (inline SVG as data URI) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233182ED'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='system-ui,sans-serif' font-size='14' font-weight='800' fill='white'%3EAI%3C/text%3E%3C/svg%3E" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #020817;
+      --bg-mid: #0a1628;
+      --surface: rgba(49,130,237,0.06);
+      --surface-hover: rgba(49,130,237,0.12);
+      --accent: #3182ED;
+      --accent-dark: #1368D8;
+      --accent-light: #60A5FA;
+      --accent-glow: rgba(49,130,237,0.3);
+      --text: #F8FAFC;
+      --text-2: #94A3B8;
+      --text-3: #64748B;
+      --border: rgba(49,130,237,0.18);
+      --border-dim: rgba(255,255,255,0.07);
+      --radius: 14px;
+      --max: 1180px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #F0F6FF;
+        --bg-mid: #FFFFFF;
+        --surface: rgba(49,130,237,0.05);
+        --surface-hover: rgba(49,130,237,0.1);
+        --accent-glow: rgba(49,130,237,0.15);
+        --text: #020817;
+        --text-2: #475569;
+        --text-3: #94A3B8;
+        --border: rgba(49,130,237,0.2);
+        --border-dim: rgba(0,0,0,0.08);
+      }
+    }
+    :root[data-theme="light"] {
+      --bg: #F0F6FF; --bg-mid: #FFFFFF;
+      --surface: rgba(49,130,237,0.05); --surface-hover: rgba(49,130,237,0.1);
+      --accent-glow: rgba(49,130,237,0.15);
+      --text: #020817; --text-2: #475569; --text-3: #94A3B8;
+      --border: rgba(49,130,237,0.2); --border-dim: rgba(0,0,0,0.08);
+    }
+    :root[data-theme="dark"] {
+      --bg: #020817; --bg-mid: #0a1628;
+      --surface: rgba(49,130,237,0.06); --surface-hover: rgba(49,130,237,0.12);
+      --accent-glow: rgba(49,130,237,0.3);
+      --text: #F8FAFC; --text-2: #94A3B8; --text-3: #64748B;
+      --border: rgba(49,130,237,0.18); --border-dim: rgba(255,255,255,0.07);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.6; overflow-x: hidden;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 64px;
+      background: rgba(2,8,23,0.75);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border-bottom: 1px solid var(--border-dim);
+      transition: background 0.3s;
+    }
+    @media (prefers-color-scheme: light) { nav { background: rgba(240,246,255,0.85); } }
+    :root[data-theme="light"] nav { background: rgba(240,246,255,0.85); }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.05rem; font-weight: 700; color: var(--text); text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px; background: var(--accent); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 800; color: #fff; letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a { color: var(--text-2); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { display: flex; gap: 0.75rem; align-items: center; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.6rem 1.25rem; border-radius: 8px;
+      font-size: 0.875rem; font-weight: 600; text-decoration: none;
+      border: none; cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border-dim); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--border); }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 0 20px var(--accent-glow); }
+    .btn-primary:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 0 28px var(--accent-glow); }
+    .btn-lg { padding: 0.85rem 2rem; font-size: 1rem; border-radius: 10px; }
+    .btn-outline { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+    .btn-outline:hover { background: var(--accent); color: #fff; }
+    .btn-full { width: 100%; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 7rem 2rem 5rem; position: relative; overflow: hidden; text-align: center;
+    }
+    .hero-glow {
+      position: absolute; top: -10%; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(49,130,237,0.22) 0%, transparent 70%);
+      pointer-events: none; animation: glowPulse 6s ease-in-out infinite;
+    }
+    .hero-glow-2 {
+      position: absolute; bottom: -15%; right: -10%;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(19,104,216,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+      50% { opacity: 0.7; transform: translateX(-50%) scale(1.05); }
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 1rem; border-radius: 100px;
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 0.8rem; font-weight: 600; color: var(--accent-light);
+      margin-bottom: 2rem; letter-spacing: 0.03em;
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--accent-light);
+      animation: dotPulse 2s ease-in-out infinite;
+    }
+    @keyframes dotPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 5.5vw, 4.5rem); font-weight: 800;
+      line-height: 1.08; letter-spacing: -0.03em;
+      text-wrap: balance; max-width: 900px; margin-bottom: 1.5rem;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem); color: var(--text-2);
+      max-width: 560px; margin-bottom: 2.5rem; text-wrap: balance;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 3.5rem; }
+    .hero-trust {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.8rem; color: var(--text-3); flex-wrap: wrap; justify-content: center;
+    }
+    .hero-trust span { display: flex; align-items: center; gap: 0.3rem; }
+
+    /* ── Phone mockup ── */
+    .phone-mockup { position: relative; margin: 0 auto; width: min(380px, 90vw); }
+    .phone-frame {
+      background: var(--bg-mid); border-radius: 28px;
+      border: 1.5px solid var(--border); overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--border-dim), 0 0 60px var(--accent-glow);
+    }
+    .phone-header {
+      background: #075E54; padding: 0.75rem 1rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .phone-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: #25D366;
+      display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;
+    }
+    .phone-contact-name { font-size: 0.9rem; font-weight: 600; color: #fff; }
+    .phone-contact-status { font-size: 0.72rem; color: rgba(255,255,255,0.7); }
+    .phone-body {
+      padding: 1rem; background: #ECE5DD; min-height: 340px;
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    @media (prefers-color-scheme: dark) { .phone-body { background: #1A1A2E; } }
+    :root[data-theme="dark"] .phone-body { background: #1A1A2E; }
+
+    .msg {
+      max-width: 82%; padding: 0.55rem 0.85rem; border-radius: 10px;
+      font-size: 0.82rem; line-height: 1.45;
+      opacity: 0; transform: translateY(8px);
+      animation: fadeMsg 0.4s ease forwards;
+    }
+    .msg-in { background: #fff; color: #303030; align-self: flex-start; border-radius: 2px 10px 10px 10px; }
+    @media (prefers-color-scheme: dark) { .msg-in { background: #2a2a3e; color: #E0E0E0; } }
+    :root[data-theme="dark"] .msg-in { background: #2a2a3e; color: #E0E0E0; }
+    .msg-out { background: #DCF8C6; color: #303030; align-self: flex-end; border-radius: 10px 2px 10px 10px; }
+    .msg-time { font-size: 0.65rem; color: #999; text-align: right; margin-top: 2px; }
+    @keyframes fadeMsg { to { opacity: 1; transform: translateY(0); } }
+    .msg:nth-child(1) { animation-delay: 0.4s; }
+    .msg:nth-child(2) { animation-delay: 1.1s; }
+    .msg:nth-child(3) { animation-delay: 1.9s; }
+    .msg:nth-child(4) { animation-delay: 2.8s; }
+    .msg:nth-child(5) { animation-delay: 3.7s; }
+    .msg:nth-child(6) { animation-delay: 4.6s; }
+    .typing-indicator {
+      display: flex; gap: 4px; align-items: center;
+      background: #fff; border-radius: 10px; padding: 0.65rem 0.85rem;
+      align-self: flex-start; width: 64px;
+      opacity: 0; animation: fadeMsg 0.4s ease 0.85s forwards;
+    }
+    @media (prefers-color-scheme: dark) { .typing-indicator { background: #2a2a3e; } }
+    :root[data-theme="dark"] .typing-indicator { background: #2a2a3e; }
+    .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: #999; animation: typingBounce 1.4s ease-in-out infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce { 0%,80%,100% { transform: translateY(0); } 40% { transform: translateY(-5px); } }
+
+    /* ── Shared section styles ── */
+    section { padding: 6rem 2rem; }
+    .container { max-width: var(--max); margin: 0 auto; }
+    .section-label {
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 800;
+      letter-spacing: -0.03em; line-height: 1.15;
+      text-wrap: balance; margin-bottom: 1rem;
+    }
+    .section-sub { font-size: 1.05rem; color: var(--text-2); max-width: 520px; text-wrap: balance; }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      background: var(--bg-mid);
+      border-top: 1px solid var(--border-dim); border-bottom: 1px solid var(--border-dim);
+      padding: 2.5rem 2rem;
+    }
+    .stats-inner {
+      max-width: var(--max); margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: center;
+    }
+    .stat-num {
+      font-size: 2.2rem; font-weight: 800; letter-spacing: -0.04em;
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-label { font-size: 0.85rem; color: var(--text-2); margin-top: 0.25rem; }
+
+    /* ── Features ── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem; margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--border-dim);
+      border-radius: var(--radius); padding: 1.75rem; transition: all 0.25s;
+    }
+    .feature-card:hover {
+      background: var(--surface-hover); border-color: var(--border);
+      transform: translateY(-3px); box-shadow: 0 12px 32px rgba(49,130,237,0.1);
+    }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 1.1rem;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .feature-card p { font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
+
+    /* ── How it works ── */
+    .how-section { background: var(--bg-mid); }
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem; margin-top: 3.5rem;
+    }
+    .step-num {
+      font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; color: var(--accent);
+      border: 1.5px solid var(--border); width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem; background: var(--surface);
+    }
+    .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .step p { font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
+
+    /* ── Your Number ── */
+    .numbers-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+      align-items: center; margin-top: 3rem;
+    }
+    .numbers-visual {
+      background: var(--bg-mid); border: 1px solid var(--border-dim);
+      border-radius: var(--radius); padding: 2rem; overflow: hidden; position: relative;
+    }
+    .numbers-visual::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .number-option {
+      display: flex; align-items: flex-start; gap: 1rem; padding: 1rem;
+      border-radius: 10px; background: var(--surface);
+      border: 1px solid var(--border-dim); margin-bottom: 0.75rem; transition: all 0.2s;
+    }
+    .number-option:last-child { margin-bottom: 0; }
+    .number-option:hover { border-color: var(--border); background: var(--surface-hover); }
+    .number-option-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+    .number-option-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .number-option-desc { font-size: 0.8rem; color: var(--text-2); line-height: 1.5; }
+    .number-badge {
+      display: inline-block; font-size: 0.7rem; font-weight: 700;
+      padding: 0.15rem 0.5rem; border-radius: 4px; margin-top: 0.4rem;
+    }
+    .badge-green { background: rgba(37,211,102,0.12); color: #25D366; }
+    .badge-blue { background: rgba(49,130,237,0.12); color: var(--accent-light); }
+
+    /* ── Pricing ── */
+    .pricing-section { background: var(--bg-mid); }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem; margin-top: 3rem; align-items: start;
+    }
+    .price-card {
+      background: var(--bg); border: 1px solid var(--border-dim);
+      border-radius: var(--radius); padding: 2rem; position: relative; transition: all 0.25s;
+    }
+    .price-card:hover { transform: translateY(-3px); }
+    .price-card.featured {
+      background: linear-gradient(160deg, #0f2040 0%, #091830 100%);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 20px 60px rgba(49,130,237,0.2);
+      transform: scale(1.03);
+    }
+    .price-card.featured:hover { transform: scale(1.03) translateY(-3px); }
+    @media (prefers-color-scheme: light) {
+      .price-card.featured { background: linear-gradient(160deg, #dbeafe 0%, #eff6ff 100%); }
+    }
+    :root[data-theme="light"] .price-card.featured { background: linear-gradient(160deg, #dbeafe 0%, #eff6ff 100%); }
+    .price-popular {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #fff;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.3rem 0.9rem; border-radius: 100px; white-space: nowrap;
+    }
+    .price-tier { font-size: 0.8rem; font-weight: 700; color: var(--text-2); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.75rem; }
+    .price-amount { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.25rem; }
+    .price-amount span { font-size: 1rem; font-weight: 500; color: var(--text-2); vertical-align: middle; margin-left: 4px; }
+    .price-desc { font-size: 0.85rem; color: var(--text-2); margin-bottom: 1.5rem; line-height: 1.5; }
+    .price-features { list-style: none; margin-bottom: 2rem; }
+    .price-features li {
+      font-size: 0.875rem; color: var(--text-2); padding: 0.45rem 0;
+      border-bottom: 1px solid var(--border-dim);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .price-features li::before { content: '✓'; color: var(--accent); font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+    .price-card.featured .price-features li { color: #CBD5E1; border-bottom-color: rgba(255,255,255,0.07); }
+
+    /* ── Testimonials ── */
+    .testi-section { background: var(--bg); }
+    .testi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem; margin-top: 3rem;
+    }
+    .testi-card {
+      background: var(--surface); border: 1px solid var(--border-dim);
+      border-radius: var(--radius); padding: 1.75rem;
+    }
+    .testi-stars { color: #F59E0B; font-size: 0.85rem; margin-bottom: 1rem; letter-spacing: 2px; }
+    .testi-text { font-size: 0.9rem; color: var(--text-2); line-height: 1.65; margin-bottom: 1.25rem; font-style: italic; }
+    .testi-author { display: flex; align-items: center; gap: 0.75rem; }
+    .testi-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .testi-name { font-size: 0.875rem; font-weight: 700; }
+    .testi-role { font-size: 0.78rem; color: var(--text-3); }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: linear-gradient(160deg, #091526 0%, #020817 100%);
+      text-align: center; padding: 7rem 2rem;
+      position: relative; overflow: hidden;
+    }
+    @media (prefers-color-scheme: light) { .cta-section { background: linear-gradient(160deg, #dbeafe 0%, #eff6ff 100%); } }
+    :root[data-theme="light"] .cta-section { background: linear-gradient(160deg, #dbeafe 0%, #eff6ff 100%); }
+    .cta-glow {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 600px; height: 400px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(49,130,237,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-section h2 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 1rem; text-wrap: balance; }
+    .cta-section p { font-size: 1.05rem; color: var(--text-2); margin-bottom: 2.5rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .cta-note { font-size: 0.8rem; color: var(--text-3); margin-top: 1.25rem; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--bg-mid); border-top: 1px solid var(--border-dim); padding: 2.5rem 2rem;
+    }
+    .footer-inner {
+      max-width: var(--max); margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-copy { font-size: 0.82rem; color: var(--text-3); }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: 0.82rem; color: var(--text-3); text-decoration: none; }
+    .footer-links a:hover { color: var(--text-2); }
+
+    /* ── Cookie banner ── */
+    #cookie-banner {
+      position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+      z-index: 200; width: min(560px, calc(100vw - 2rem));
+      background: var(--bg-mid); border: 1px solid var(--border-dim);
+      border-radius: 14px; padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    #cookie-banner p { font-size: 0.82rem; color: var(--text-2); flex: 1; min-width: 200px; }
+    #cookie-banner p a { color: var(--accent-light); }
+    .cookie-btns { display: flex; gap: 0.6rem; flex-shrink: 0; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .numbers-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .price-card.featured { transform: none; }
+      .price-card.featured:hover { transform: translateY(-3px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .msg, .typing-indicator, .typing-dot, .hero-badge-dot, .hero-glow { animation: none !important; opacity: 1 !important; transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav aria-label="Main navigation">
+  <a href="/" class="nav-logo" aria-label="AIVoiceConnect home">
+    <div class="nav-logo-icon" aria-hidden="true">AI</div>
+    AIVoiceConnect
+  </a>
+  <ul class="nav-links" role="list">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#numbers">Your number</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="/login" class="btn btn-ghost">Sign in</a>
+    <a href="/login" class="btn btn-primary">Start free trial</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<main>
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="hero-glow-2" aria-hidden="true"></div>
+  <div class="hero-badge" aria-label="Status: Built for UK businesses, live now">
+    <div class="hero-badge-dot" aria-hidden="true"></div>
+    Built for UK businesses — live now
+  </div>
+  <h1 id="hero-heading">Never miss a <em>patient, client,</em><br>or booking again</h1>
+  <p class="hero-sub">
+    AIVoiceConnect answers your calls, replies on WhatsApp, and books appointments — 24/7, on your existing number.
+  </p>
+  <div class="hero-actions">
+    <a href="/login" class="btn btn-primary btn-lg">Start free trial — it's free</a>
+    <a href="#how" class="btn btn-outline btn-lg">See how it works</a>
+  </div>
+  <div class="hero-trust" aria-label="Trust indicators">
+    <span>✓ No credit card needed</span>
+    <span aria-hidden="true">·</span>
+    <span>✓ 14-day free trial</span>
+    <span aria-hidden="true">·</span>
+    <span>✓ GDPR compliant</span>
+    <span aria-hidden="true">·</span>
+    <span>✓ Works on your existing number</span>
+  </div>
+
+  <!-- WhatsApp conversation mockup -->
+  <div class="phone-mockup" style="margin-top:4rem;" aria-label="Example WhatsApp booking conversation" role="img">
+    <div class="phone-frame">
+      <div class="phone-header">
+        <div class="phone-avatar" aria-hidden="true">🤖</div>
+        <div>
+          <div class="phone-contact-name">Maple Clinic Receptionist</div>
+          <div class="phone-contact-status">online · typically replies instantly</div>
+        </div>
+      </div>
+      <div class="phone-body" aria-hidden="true">
+        <div class="msg msg-in">
+          Hi, I missed a call from you earlier. Can I book an appointment?
+          <div class="msg-time">10:43</div>
+        </div>
+        <div class="typing-indicator">
+          <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+        </div>
+        <div class="msg msg-out">
+          Hello! I'm the AI receptionist for Maple Clinic. Of course — what day works best for you?
+          <div class="msg-time">10:43</div>
+        </div>
+        <div class="msg msg-in">
+          Thursday morning if possible?
+          <div class="msg-time">10:44</div>
+        </div>
+        <div class="msg msg-out">
+          I have Thursday 24th at 9:30 AM available. Can I take your name and reason for the visit?
+          <div class="msg-time">10:44</div>
+        </div>
+        <div class="msg msg-in">
+          Sarah Ahmed — routine checkup
+          <div class="msg-time">10:45</div>
+        </div>
+        <div class="msg msg-out">
+          ✅ Booked! Thursday 24th at 9:30 AM for Sarah Ahmed. You'll get a reminder the day before. See you then!
+          <div class="msg-time">10:45</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar" role="region" aria-label="Key statistics">
+  <div class="stats-inner">
+    <div><div class="stat-num">24/7</div><div class="stat-label">Always available</div></div>
+    <div><div class="stat-num">&lt;2 min</div><div class="stat-label">Average booking time</div></div>
+    <div><div class="stat-num">0</div><div class="stat-label">Missed calls left unanswered</div></div>
+    <div><div class="stat-num">£0</div><div class="stat-label">Extra staff needed</div></div>
+  </div>
+</div>
+
+<!-- Features -->
+<section id="features" aria-labelledby="features-heading">
+  <div class="container">
+    <div class="section-label" aria-hidden="true">What it does</div>
+    <h2 class="section-title" id="features-heading">Everything a receptionist does — automatically</h2>
+    <p class="section-sub">From the first ring to the confirmed appointment, AIVoiceConnect handles it all so your team can focus on the people in front of them.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true">📞</div>
+        <h3>AI Voice Receptionist</h3>
+        <p>Answers inbound calls, greets callers naturally, and guides them through booking — with a warm British voice, any time of day.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true">💬</div>
+        <h3>WhatsApp Booking</h3>
+        <p>Handles multi-turn WhatsApp conversations to confirm appointments — just like a human would, but available instantly 24/7.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true">📱</div>
+        <h3>SMS Fallback</h3>
+        <p>If WhatsApp isn't available, replies switch to SMS automatically — so no customer is ever left without a response.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true">📅</div>
+        <h3>Appointment Management</h3>
+        <p>Bookings appear in your dashboard instantly. Automated reminders sent 24h and 2h before — no-shows dramatically reduced.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true">🗂️</div>
+        <h3>Smart Inbox</h3>
+        <p>Every message in one place. AI-suggested replies help your team respond faster. Resolve conversations with one click.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" aria-hidden="true">🔔</div>
+        <h3>Missed Call Auto-reply</h3>
+        <p>When a call goes unanswered, a personalised message is sent within seconds — turning missed calls into confirmed bookings.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section id="how" class="how-section" aria-labelledby="how-heading">
+  <div class="container">
+    <div class="section-label" aria-hidden="true">How it works</div>
+    <h2 class="section-title" id="how-heading">Up and running in under an hour</h2>
+    <p class="section-sub">No hardware. No engineers. No phone system overhaul.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" aria-hidden="true">01</div>
+        <h3>Connect your number</h3>
+        <p>Keep your existing landline or mobile, or we provision a fresh UK number. The guided wizard takes minutes.</p>
+      </div>
+      <div class="step">
+        <div class="step-num" aria-hidden="true">02</div>
+        <h3>Configure your business</h3>
+        <p>Tell us your business name, sector, and opening hours. The AI learns your availability and speaks in your brand's voice.</p>
+      </div>
+      <div class="step">
+        <div class="step-num" aria-hidden="true">03</div>
+        <h3>Go live — AI takes over</h3>
+        <p>Every call, WhatsApp message, and SMS is handled automatically. You see every booking in your dashboard in real time.</p>
+      </div>
+      <div class="step">
+        <div class="step-num" aria-hidden="true">04</div>
+        <h3>Manage and grow</h3>
+        <p>Review analytics, handle edge cases, and scale — your team stays in control while the AI handles the volume.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Your Number -->
+<section id="numbers" aria-labelledby="numbers-heading">
+  <div class="container">
+    <div class="numbers-grid">
+      <div>
+        <div class="section-label" aria-hidden="true">Connect your number</div>
+        <h2 class="section-title" id="numbers-heading">Works with the number you already have</h2>
+        <p class="section-sub">No need to change your number or lose years of customer trust. We connect around what you already have.</p>
+      </div>
+      <div class="numbers-visual" role="list" aria-label="Phone number connection options">
+        <div class="number-option" role="listitem">
+          <div class="number-option-icon" aria-hidden="true">🏢</div>
+          <div>
+            <div class="number-option-title">Existing landline</div>
+            <div class="number-option-desc">Register your landline for WhatsApp Business via voice OTP. No SIM swap, no change for customers.</div>
+            <span class="number-badge badge-green">Most popular</span>
+          </div>
+        </div>
+        <div class="number-option" role="listitem">
+          <div class="number-option-icon" aria-hidden="true">📲</div>
+          <div>
+            <div class="number-option-title">Existing mobile</div>
+            <div class="number-option-desc">Use your current mobile with a simple call-forwarding rule to redirect missed calls to our AI.</div>
+            <span class="number-badge badge-blue">Simple setup</span>
+          </div>
+        </div>
+        <div class="number-option" role="listitem">
+          <div class="number-option-icon" aria-hidden="true">🆕</div>
+          <div>
+            <div class="number-option-title">New UK number</div>
+            <div class="number-option-desc">We provision a dedicated UK geographic number. Voice, SMS, and WhatsApp all configured automatically.</div>
+            <span class="number-badge badge-blue">Instant provisioning</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testi-section" aria-labelledby="testi-heading">
+  <div class="container">
+    <div class="section-label" aria-hidden="true">Early feedback</div>
+    <h2 class="section-title" id="testi-heading">Trusted by UK clinics and practices</h2>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars" aria-label="5 out of 5 stars">★★★★★</div>
+        <p class="testi-text">"We used to lose 30% of calls during lunch. Since AIVoiceConnect, every one turns into a booking automatically. Our receptionist now focuses entirely on patients in the room."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#3182ED;" aria-hidden="true">PW</div>
+          <div><div class="testi-name">Dr P. Williams</div><div class="testi-role">GP Practice, Manchester</div></div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars" aria-label="5 out of 5 stars">★★★★★</div>
+        <p class="testi-text">"Setup took 45 minutes. By the next morning the AI had already booked 7 appointments overnight that we'd have missed completely. Remarkable."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#1368D8;" aria-hidden="true">SK</div>
+          <div><div class="testi-name">Sunita K.</div><div class="testi-role">Practice Manager, Birmingham</div></div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars" aria-label="5 out of 5 stars">★★★★★</div>
+        <p class="testi-text">"The WhatsApp booking flow is honestly better than what my human receptionist was doing. Patients love getting instant responses at 10pm."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#0E5CC7;" aria-hidden="true">JO</div>
+          <div><div class="testi-name">James O.</div><div class="testi-role">Dental Practice, London</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing" class="pricing-section" aria-labelledby="pricing-heading">
+  <div class="container">
+    <div class="section-label" aria-hidden="true">Pricing</div>
+    <h2 class="section-title" id="pricing-heading">Simple pricing, no hidden fees</h2>
+    <p class="section-sub">14-day free trial on every plan. No credit card required to start.</p>
+    <div class="pricing-grid" role="list" aria-label="Pricing plans">
+      <div class="price-card" role="listitem">
+        <div class="price-tier">Starter</div>
+        <div class="price-amount">£49<span>/mo</span></div>
+        <p class="price-desc">For solo practitioners and small clinics getting started.</p>
+        <ul class="price-features" aria-label="Starter plan features">
+          <li>1 location / phone number</li>
+          <li>Up to 200 conversations/month</li>
+          <li>WhatsApp + SMS booking</li>
+          <li>Missed call auto-reply</li>
+          <li>Appointment dashboard</li>
+          <li>Email support</li>
+        </ul>
+        <a href="/login" class="btn btn-outline btn-full">Start free trial</a>
+      </div>
+      <div class="price-card featured" role="listitem">
+        <div class="price-popular">Most popular</div>
+        <div class="price-tier" style="color:#93C5FD;">Professional</div>
+        <div class="price-amount">£99<span style="color:#93C5FD;">/mo</span></div>
+        <p class="price-desc" style="color:#94A3B8;">For growing practices that need voice AI and analytics.</p>
+        <ul class="price-features" aria-label="Professional plan features">
+          <li>Up to 3 locations</li>
+          <li>Unlimited conversations</li>
+          <li>AI Voice Receptionist (calls)</li>
+          <li>WhatsApp + SMS booking</li>
+          <li>Smart inbox + AI replies</li>
+          <li>Analytics dashboard</li>
+          <li>Google Calendar sync</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="/login" class="btn btn-primary btn-full" style="font-size:1rem;padding:0.85rem 2rem;">Start free trial</a>
+      </div>
+      <div class="price-card" role="listitem">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-amount">Custom</div>
+        <p class="price-desc">For multi-site groups, NHS partnerships, and custom deployments.</p>
+        <ul class="price-features" aria-label="Enterprise plan features">
+          <li>Unlimited locations</li>
+          <li>Dedicated account manager</li>
+          <li>Custom AI training</li>
+          <li>SLA guarantees</li>
+          <li>SSO / SAML login</li>
+          <li>Data processing agreement</li>
+          <li>Custom integrations</li>
+          <li>On-site onboarding</li>
+        </ul>
+        <a href="mailto:hello@aivoiceconnect.co.uk" class="btn btn-ghost btn-full">Contact sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" aria-labelledby="cta-heading">
+  <div class="cta-glow" aria-hidden="true"></div>
+  <div class="container" style="position:relative;">
+    <h2 id="cta-heading">Start your 14-day free trial today</h2>
+    <p>Join UK clinics and businesses saving hours every week with AI-powered reception.</p>
+    <div class="cta-actions">
+      <a href="/login" class="btn btn-primary btn-lg">Get started — it's free</a>
+      <a href="mailto:hello@aivoiceconnect.co.uk" class="btn btn-ghost btn-lg">Book a demo</a>
+    </div>
+    <p class="cta-note">No credit card required · Cancel anytime · GDPR compliant · UK-based support</p>
+  </div>
+</section>
+</main>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="nav-logo">
+      <div class="nav-logo-icon" aria-hidden="true">AI</div>
+      AIVoiceConnect
+    </div>
+    <p class="footer-copy">© 2026 AIVoiceConnect by ITSpark. All rights reserved.</p>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="mailto:hello@aivoiceconnect.co.uk">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- Cookie consent -->
+<div id="cookie-banner" role="dialog" aria-label="Cookie consent" aria-live="polite">
+  <p>We use essential cookies to keep you signed in. No tracking or advertising cookies. <a href="/privacy">Privacy policy</a></p>
+  <div class="cookie-btns">
+    <button class="btn btn-primary" onclick="document.getElementById('cookie-banner').remove();localStorage.setItem('cookie-ok','1');">Accept</button>
+  </div>
+</div>
+
+<script>
+  // Hide cookie banner if already accepted
+  if (localStorage.getItem('cookie-ok')) {
+    var b = document.getElementById('cookie-banner');
+    if (b) b.remove();
+  }
+
+  // Smooth nav shrink on scroll
+  var nav = document.querySelector('nav');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 40) {
+      nav.style.height = '56px';
+    } else {
+      nav.style.height = '64px';
+    }
+  }, { passive: true });
+</script>
+</body>
+</html>
