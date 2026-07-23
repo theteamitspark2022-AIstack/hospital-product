@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require("../models/db");
 const twilio = require("twilio");
 const { detectKeyword, getAutoReply } = require("../services/buddyService");
+const requireAuth = require("../middleware/requireAuth");
 
 const COMPLAINT_REGEX = /\b(complaint|complain|unhappy|not happy|wrong|mistake|error|terrible|awful|disgusting|refund|rude|unacceptable)\b/i;
 
@@ -171,7 +172,7 @@ router.post("/inbound", async (req, res) => {
 });
 
 // GET /api/inbox — list open threads sorted by wait time
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   if (!db.isConnected()) return res.json([]);
   const businessId = req.auth?.businessId;
   try {
@@ -191,8 +192,70 @@ router.get("/", async (req, res) => {
   }
 });
 
+// GET /api/inbox/:id/suggest — AI suggested replies based on conversation history
+router.get("/:id/suggest", requireAuth, async (req, res) => {
+  if (!db.isConnected()) return res.status(503).json({ error: "DB not connected" });
+  try {
+    const businessId = req.auth?.businessId;
+
+    // Get business settings for context
+    const settings = await getBusinessSettings(businessId);
+
+    // Get last 6 messages for context
+    const { rows: messages } = await db.query(
+      `SELECT direction, body FROM messages WHERE conversation_id = $1 ORDER BY created_at DESC LIMIT 6`,
+      [req.params.id]
+    );
+    if (!messages.length) return res.json({ suggestions: [] });
+
+    // Build conversation context (reverse to chronological)
+    const history = messages.reverse().map(m =>
+      `${m.direction === "inbound" ? "Customer" : "Agent"}: ${m.body}`
+    ).join("\n");
+
+    const lastCustomerMsg = messages.filter(m => m.direction === "inbound").slice(-1)[0]?.body || "";
+
+    const groq = require("groq-sdk");
+    const Groq = groq;
+    if (!process.env.GROQ_API_KEY) return res.json({ suggestions: [] });
+
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const completion = await client.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 300,
+      messages: [
+        {
+          role: "system",
+          content: `You are a customer service assistant for ${settings.business_name || "this business"} (${settings.sector || "small business"}).
+Generate exactly 3 short, distinct WhatsApp reply suggestions for the agent to send to the customer.
+Each suggestion should be on its own line starting with a number and dot (1. 2. 3.).
+Keep each reply under 2 sentences. Be warm, professional, and helpful.
+Do not add any explanation or preamble — just the 3 numbered suggestions.`
+        },
+        {
+          role: "user",
+          content: `Conversation so far:\n${history}\n\nGenerate 3 reply suggestions for the agent to send next.`
+        }
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content?.trim() || "";
+    const suggestions = raw
+      .split("\n")
+      .filter(l => /^\d+\./.test(l.trim()))
+      .map(l => l.replace(/^\d+\.\s*/, "").trim())
+      .filter(Boolean)
+      .slice(0, 3);
+
+    res.json({ suggestions });
+  } catch (err) {
+    console.error("Suggest reply error:", err.message);
+    res.json({ suggestions: [] });
+  }
+});
+
 // GET /api/inbox/:id/messages — full conversation history
-router.get("/:id/messages", async (req, res) => {
+router.get("/:id/messages", requireAuth, async (req, res) => {
   if (!db.isConnected()) return res.json([]);
   try {
     const { rows } = await db.query(
@@ -206,7 +269,7 @@ router.get("/:id/messages", async (req, res) => {
 });
 
 // POST /api/inbox/:id/reply — send reply via Twilio
-router.post("/:id/reply", async (req, res) => {
+router.post("/:id/reply", requireAuth, async (req, res) => {
   const { body } = req.body;
   if (!body) return res.status(400).json({ error: "body required" });
 
@@ -238,7 +301,7 @@ router.post("/:id/reply", async (req, res) => {
 });
 
 // POST /api/inbox/:id/resolve — mark thread resolved
-router.post("/:id/resolve", async (req, res) => {
+router.post("/:id/resolve", requireAuth, async (req, res) => {
   if (!db.isConnected()) return res.status(503).json({ error: "DB not connected" });
   try {
     await db.query(
