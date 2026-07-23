@@ -41,7 +41,10 @@ async function getBusinessSettings(businessId) {
 async function getDefaultBusinessId() {
   if (!db.isConnected()) return null;
   try {
-    const { rows } = await db.query("SELECT id FROM businesses ORDER BY created_at ASC LIMIT 1");
+    // Prefer live business, then most recently created
+    const { rows } = await db.query(
+      "SELECT id FROM businesses ORDER BY is_live DESC, created_at DESC LIMIT 1"
+    );
     return rows[0]?.id || null;
   } catch { return null; }
 }
