@@ -77,7 +77,8 @@ router.post("/inbound", async (req, res) => {
            last_message = $2, last_message_at = NOW(),
            status = CASE WHEN conversations.status = 'resolved' THEN 'open' ELSE conversations.status END,
            opt_in_whatsapp = true,
-           opt_in_at = COALESCE(conversations.opt_in_at, NOW())`,
+           opt_in_at = COALESCE(conversations.opt_in_at, NOW()),
+           business_id = COALESCE(conversations.business_id, $3)`,
         [customerNumber, Body, businessId]
       );
 
