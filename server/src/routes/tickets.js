@@ -27,11 +27,12 @@ router.post("/", async (req, res) => {
 
   const { sla_response_at, sla_resolve_at } = slaDeadlines(priority);
 
+  const businessId = req.auth?.businessId || null;
   try {
     const { rows } = await db.query(
-      `INSERT INTO tickets (conversation_id, customer_number, description, priority, assigned_agent, sla_response_at, sla_resolve_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [conversationId || null, customerNumber, description || null, priority, assignedAgent || null, sla_response_at, sla_resolve_at]
+      `INSERT INTO tickets (conversation_id, customer_number, description, priority, assigned_agent, sla_response_at, sla_resolve_at, business_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [conversationId || null, customerNumber, description || null, priority, assignedAgent || null, sla_response_at, sla_resolve_at, businessId]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
