@@ -56,7 +56,23 @@ async function sendWhatsApp(to, body) {
     to: toAddress(to),
     body,
   });
-  return msg.sid;
+  return { sid: msg.sid, channel: CHANNEL };
+}
+
+async function sendWithFallback(to, body) {
+  try {
+    return await sendWhatsApp(to, body);
+  } catch (whatsappErr) {
+    console.warn(`WhatsApp send failed for ${to}: ${whatsappErr.message} — falling back to SMS`);
+    const smsFROM = process.env.TWILIO_SMS_FROM;
+    if (!smsFROM) {
+      console.error("No TWILIO_SMS_FROM set — cannot fall back to SMS");
+      throw whatsappErr;
+    }
+    const msg = await client.messages.create({ from: smsFROM, to, body });
+    console.log(`SMS fallback sent to ${to} via ${smsFROM}`);
+    return { sid: msg.sid, channel: "sms" };
+  }
 }
 
 // POST /api/inbox/inbound — Twilio webhook for incoming WhatsApp messages
@@ -103,7 +119,7 @@ router.post("/inbound", async (req, res) => {
             [convId]
           );
           const reply = "You've been unsubscribed. No further messages will be sent. Take care!";
-          const sid = await sendWhatsApp(customerNumber, reply);
+          const { sid } = await sendWithFallback(customerNumber, reply);
           await db.query(
             "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
             [convId, reply, sid]
@@ -120,7 +136,7 @@ router.post("/inbound", async (req, res) => {
 
         // Send acknowledgement immediately (AC4: within 10s)
         const ack = "Thanks for your message — we've received it and will get back to you shortly. 👍";
-        const ackSid = await sendWhatsApp(customerNumber, ack);
+        const { sid: ackSid } = await sendWithFallback(customerNumber, ack);
         await db.query(
           "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
           [convId, ack, ackSid]
@@ -128,7 +144,7 @@ router.post("/inbound", async (req, res) => {
 
         if (keyword === "confirm") {
           const reply = "Brilliant — your appointment is confirmed! We'll see you then. 😊";
-          const sid = await sendWhatsApp(customerNumber, reply);
+          const { sid } = await sendWithFallback(customerNumber, reply);
           await db.query(
             "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
             [convId, reply, sid]
@@ -137,7 +153,7 @@ router.post("/inbound", async (req, res) => {
 
         } else if (keyword === "cancel") {
           const reply = "No problem — your appointment has been cancelled. Call us if you'd like to rebook.";
-          const sid = await sendWhatsApp(customerNumber, reply);
+          const { sid } = await sendWithFallback(customerNumber, reply);
           await db.query(
             "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
             [convId, reply, sid]
@@ -177,7 +193,7 @@ router.post("/inbound", async (req, res) => {
           }
 
           if (aiReply) {
-            const sid = await sendWhatsApp(customerNumber, aiReply);
+            const { sid } = await sendWithFallback(customerNumber, aiReply);
             await db.query(
               "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
               [convId, aiReply, sid]
@@ -376,11 +392,8 @@ router.post("/:id/reply", requireAuth, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: "Thread not found" });
 
     const to = rows[0].customer_number;
-    const msg = await client.messages.create({
-      from: toAddress(FROM),
-      to: toAddress(to),
-      body,
-    });
+    const { sid: msgSid } = await sendWithFallback(to, body);
+    const msg = { sid: msgSid };
 
     await db.query(
       "INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)",
