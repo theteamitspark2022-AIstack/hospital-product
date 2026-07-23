@@ -84,6 +84,48 @@
     }
     .btn-signout:hover { background: var(--navy-3); color: #fff; }
 
+    /* ── User avatar dropdown ── */
+    .user-menu { position: relative; }
+    .user-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #3182ED, #1368D8);
+      color: #fff; font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; border: 2px solid rgba(255,255,255,0.15);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      user-select: none;
+    }
+    .user-avatar:hover { border-color: rgba(255,255,255,0.4); box-shadow: 0 0 0 3px rgba(49,130,237,0.3); }
+    .user-dropdown {
+      display: none; position: absolute; top: calc(100% + 10px); right: 0;
+      background: #fff; border: 1px solid #E2E8F0; border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      min-width: 220px; z-index: 999; overflow: hidden;
+    }
+    .user-dropdown.open { display: block; }
+    .user-dropdown-header {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid #F1F5F9;
+      background: linear-gradient(135deg,#F8FAFC,#EBF4FF);
+    }
+    .user-dropdown-name { font-size: 13px; font-weight: 700; color: #020817; margin-bottom: 2px; }
+    .user-dropdown-email { font-size: 11px; color: #64748B; word-break: break-all; }
+    .user-dropdown-role {
+      display: inline-block; margin-top: 6px;
+      background: #3182ED1A; color: #3182ED;
+      font-size: 10px; font-weight: 700; padding: 2px 8px;
+      border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .user-dropdown-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 16px; font-size: 13px; color: #334155;
+      cursor: pointer; transition: background 0.12s;
+    }
+    .user-dropdown-item:hover { background: #F8FAFC; }
+    .user-dropdown-item.danger { color: #DC2626; }
+    .user-dropdown-item.danger:hover { background: #FEF2F2; }
+    .user-dropdown-divider { height: 1px; background: #F1F5F9; margin: 2px 0; }
+
     /* ── Layout ── */
     main { max-width: 960px; margin: 0 auto; padding: 28px 24px 80px; display: flex; flex-direction: column; gap: 20px; }
 
@@ -347,7 +389,23 @@
   <div class="header-right">
     <div class="live-badge" id="liveBadge">LIVE</div>
     <div class="progress-pill">Setup: <span id="progressPct">0%</span></div>
-    <button onclick="logout()" style="background:#334155;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;">Sign Out</button>
+    <div class="user-menu" id="userMenu">
+      <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu(event)">?</div>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-header">
+          <div class="user-dropdown-name" id="dropdownName">—</div>
+          <div class="user-dropdown-email" id="dropdownEmail">—</div>
+          <div class="user-dropdown-role" id="dropdownRole">Owner</div>
+        </div>
+        <div class="user-dropdown-item" onclick="showTab('settings')">
+          <span>⚙️</span> Account Settings
+        </div>
+        <div class="user-dropdown-divider"></div>
+        <div class="user-dropdown-item danger" onclick="logout()">
+          <span>🚪</span> Sign Out
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -639,6 +697,32 @@
         tab.style.display = "none";
       }
     });
+  }
+
+  // ── User menu ──
+  function toggleUserMenu(e) {
+    e.stopPropagation();
+    document.getElementById("userDropdown").classList.toggle("open");
+  }
+  document.addEventListener("click", () => {
+    document.getElementById("userDropdown")?.classList.remove("open");
+  });
+
+  async function loadUserInfo() {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (!res.ok) return;
+      const d = await res.json();
+      const initial = (d.email || "?")[0].toUpperCase();
+      document.getElementById("userAvatar").textContent = initial;
+      document.getElementById("dropdownEmail").textContent = d.email || "—";
+      document.getElementById("dropdownRole").textContent = d.role === "owner" ? "Owner" : d.role === "agent" ? "Agent" : d.role;
+      // Fetch business name for display
+      try {
+        const st = await fetch("/api/status");
+        if (st.ok) { const sd = await st.json(); document.getElementById("dropdownName").textContent = sd.businessName || d.email; }
+      } catch {}
+    } catch {}
   }
 
   async function logout() {
@@ -935,6 +1019,7 @@
   }
 
   refresh();
+  loadUserInfo();
   loadPlanUsage();
   loadSettings();
   loadCalendarStatus();
