@@ -312,6 +312,11 @@
     } catch {}
   })();
 
+  // Auto-open signup tab if URL has ?signup or #signup
+  if (location.search.includes('signup') || location.hash === '#signup') {
+    showTab('signup');
+  }
+
   /* ── Tab switching ── */
   function showTab(tab) {
     document.querySelectorAll(".tab").forEach((t, i) => t.classList.toggle("active", ["login","signup"][i] === tab));
