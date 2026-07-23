@@ -161,6 +161,9 @@ async function migrate() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS business_phone VARCHAR(32)`).catch(() => {});
+  await pool.query(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS phone_setup_type VARCHAR(16)`).catch(() => {});
+  await pool.query(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS phone_setup_complete BOOLEAN DEFAULT false`).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS voice_sessions (
       id             SERIAL PRIMARY KEY,

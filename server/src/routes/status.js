@@ -11,6 +11,7 @@ router.get("/", async (req, res) => {
   let callCount = 0;
 
   let settingsConfigured = false;
+  let phoneConnected = false;
   if (db.isConnected()) {
     try {
       const biz = await db.query("SELECT is_live FROM businesses WHERE id = $1", [businessId]);
@@ -18,11 +19,12 @@ router.get("/", async (req, res) => {
       const calls = await db.query("SELECT COUNT(*) FROM calls WHERE business_id = $1::varchar", [businessId]);
       callCount = parseInt(calls.rows[0].count);
       const settings = await db.query(
-        "SELECT callback_number, sector FROM settings WHERE business_id = $1 LIMIT 1", [businessId]
+        "SELECT callback_number, sector, phone_setup_complete FROM settings WHERE business_id = $1 LIMIT 1", [businessId]
       );
       if (settings.rows.length) {
         const s = settings.rows[0];
         settingsConfigured = !!(s.callback_number && s.sector);
+        phoneConnected = !!s.phone_setup_complete;
       }
     } catch (err) {
       console.error("Status query failed:", err.message);
@@ -30,11 +32,12 @@ router.get("/", async (req, res) => {
   }
 
   const steps = [
-    { key: "signup",       label: "Sign up",            done: true },
-    { key: "verify_email", label: "Verify email",        done: true },
-    { key: "templates",    label: "Configure settings",  done: settingsConfigured },
-    { key: "test_call",    label: "Make test call",      done: callCount > 0 },
-    { key: "go_live",      label: "Go live",             done: isLive },
+    { key: "signup",         label: "Sign up",              done: true },
+    { key: "verify_email",   label: "Verify email",          done: true },
+    { key: "templates",      label: "Configure settings",    done: settingsConfigured },
+    { key: "connect_number", label: "Connect your number",   done: phoneConnected },
+    { key: "test_call",      label: "Make test call",        done: callCount > 0 },
+    { key: "go_live",        label: "Go live",               done: isLive },
   ];
 
   const completed = steps.filter((s) => s.done).length;

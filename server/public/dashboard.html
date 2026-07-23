@@ -381,6 +381,13 @@
       font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;
     }
     .btn-secondary:hover { background: var(--border); }
+    .phone-option-card {
+      border: 2px solid var(--border); border-radius: 10px; padding: 16px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      background: var(--bg);
+    }
+    .phone-option-card:hover { border-color: var(--accent); background: var(--blue-bg, #EFF6FF); }
+    .phone-option-card.selected { border-color: var(--accent); background: var(--blue-bg, #EFF6FF); }
 
     /* ── Forms ── */
     .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 18px; }
@@ -698,6 +705,93 @@
       <div style="display:flex;align-items:center;">
         <button class="btn-save" id="saveBtn" onclick="saveSettings()">Save Settings</button>
         <span class="save-msg" id="saveMsg"></span>
+      </div>
+    </div>
+
+    <!-- Connect Your Number -->
+    <div class="card" id="connectNumberCard">
+      <h2>📞 Connect Your Number</h2>
+      <p style="font-size:13px;color:var(--slate);margin-bottom:16px;">Choose how you want customers to reach you. All options route calls and messages through Buddy AI.</p>
+
+      <div id="phoneSetupDone" style="display:none;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="background:var(--green-bg);color:#16A34A;border:1px solid var(--green-b);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">● Connected</span>
+          <span id="phoneSetupSummary" style="font-size:13px;color:var(--slate);"></span>
+        </div>
+        <button class="btn-secondary" style="margin-top:10px;font-size:12px;" onclick="resetPhoneSetup()">Change setup</button>
+      </div>
+
+      <div id="phoneSetupOptions">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
+          <div class="phone-option-card" id="opt-landline" onclick="selectPhoneOption('landline')">
+            <div style="font-size:24px;margin-bottom:8px;">🏢</div>
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px;">I have a landline</div>
+            <div style="font-size:12px;color:var(--slate);">Register your existing landline as your WhatsApp Business number</div>
+          </div>
+          <div class="phone-option-card" id="opt-mobile" onclick="selectPhoneOption('mobile')">
+            <div style="font-size:24px;margin-bottom:8px;">📱</div>
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Mobile only</div>
+            <div style="font-size:12px;color:var(--slate);">Use call forwarding + a cheap second SIM for WhatsApp</div>
+          </div>
+          <div class="phone-option-card" id="opt-new" onclick="selectPhoneOption('new')">
+            <div style="font-size:24px;margin-bottom:8px;">✨</div>
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px;">Give me a new UK number</div>
+            <div style="font-size:12px;color:var(--slate);">We'll provision a dedicated UK business number instantly (~£1/mo)</div>
+          </div>
+        </div>
+
+        <!-- Landline instructions -->
+        <div id="setup-landline" class="phone-setup-panel" style="display:none;">
+          <div style="background:var(--blue-bg,#EFF6FF);border:1px solid #BFDBFE;border-radius:8px;padding:16px;margin-bottom:14px;">
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px;">📋 Landline Setup Steps</div>
+            <ol style="font-size:13px;color:var(--slate);padding-left:18px;line-height:2;">
+              <li>Enter your landline number below</li>
+              <li>We'll register it as your WhatsApp Business sender via Meta</li>
+              <li>Meta will call your landline with a verification code</li>
+              <li>Set your mobile to forward missed calls: dial <code style="background:#E0E7FF;padding:2px 6px;border-radius:4px;">**61*YOUR_TWILIO_NUMBER#</code></li>
+            </ol>
+          </div>
+          <div class="form-group">
+            <label>Your Landline Number (UK format)</label>
+            <input type="text" id="landlineNumber" placeholder="+441614960000" />
+          </div>
+          <button class="btn-save" onclick="savePhoneSetup('landline')">Save &amp; Continue</button>
+        </div>
+
+        <!-- Mobile instructions -->
+        <div id="setup-mobile" class="phone-setup-panel" style="display:none;">
+          <div style="background:var(--blue-bg,#EFF6FF);border:1px solid #BFDBFE;border-radius:8px;padding:16px;margin-bottom:14px;">
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px;">📋 Mobile Setup Steps</div>
+            <ol style="font-size:13px;color:var(--slate);padding-left:18px;line-height:2;">
+              <li>Get a cheap second SIM — <strong>GiffGaff or Tesco</strong> (~£5/mo) for business use</li>
+              <li>Enter that SIM's number below</li>
+              <li>Set call forwarding on your main mobile when busy/no answer:<br>
+                <code style="background:#E0E7FF;padding:2px 6px;border-radius:4px;font-size:11px;">**61*+447XXXXXXXXX# (no answer)</code><br>
+                <code style="background:#E0E7FF;padding:2px 6px;border-radius:4px;font-size:11px;">**67*+447XXXXXXXXX# (busy)</code>
+              </li>
+              <li>The second SIM number becomes your WhatsApp Business number</li>
+            </ol>
+          </div>
+          <div class="form-group">
+            <label>Second SIM Number</label>
+            <input type="text" id="mobileNumber" placeholder="+447700900000" />
+          </div>
+          <button class="btn-save" onclick="savePhoneSetup('mobile')">Save &amp; Continue</button>
+        </div>
+
+        <!-- New number -->
+        <div id="setup-new" class="phone-setup-panel" style="display:none;">
+          <div style="background:var(--blue-bg,#EFF6FF);border:1px solid #BFDBFE;border-radius:8px;padding:16px;margin-bottom:14px;">
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px;">✨ What you get</div>
+            <ul style="font-size:13px;color:var(--slate);padding-left:18px;line-height:2;">
+              <li>A dedicated UK phone number (~£1/month added to your plan)</li>
+              <li>Automatically configured for calls, WhatsApp &amp; SMS</li>
+              <li>Set your existing mobile to forward missed calls to it</li>
+              <li>Ready in seconds</li>
+            </ul>
+          </div>
+          <button class="btn-save" id="provisionBtn" onclick="provisionNumber()">Get My UK Number</button>
+        </div>
       </div>
     </div>
 
@@ -1300,6 +1394,14 @@
       document.getElementById("missedCallTemplate").value = data.missedCallTemplate || "";
       dirty = false;
       document.getElementById("unsavedBanner").classList.remove("visible");
+      // Phone setup state
+      if (data.phoneSetupComplete && data.businessPhone) {
+        const labels = { landline: "Landline", mobile: "Mobile (second SIM)", new: "Twilio UK number" };
+        document.getElementById("phoneSetupDone").style.display = "block";
+        document.getElementById("phoneSetupOptions").style.display = "none";
+        document.getElementById("phoneSetupSummary").textContent =
+          `${labels[data.phoneSetupType] || "Number"}: ${data.businessPhone}`;
+      }
     } catch (err) {
       console.error("Failed to load settings:", err);
     }
@@ -1359,6 +1461,65 @@
   window.addEventListener("beforeunload", (e) => {
     if (dirty) { e.preventDefault(); e.returnValue = ""; }
   });
+
+  // ── Connect Your Number ──
+  function selectPhoneOption(type) {
+    document.querySelectorAll(".phone-option-card").forEach(c => c.classList.remove("selected"));
+    document.querySelectorAll(".phone-setup-panel").forEach(p => p.style.display = "none");
+    document.getElementById("opt-" + type).classList.add("selected");
+    document.getElementById("setup-" + type).style.display = "block";
+  }
+
+  function resetPhoneSetup() {
+    document.getElementById("phoneSetupDone").style.display = "none";
+    document.getElementById("phoneSetupOptions").style.display = "block";
+    document.querySelectorAll(".phone-option-card").forEach(c => c.classList.remove("selected"));
+    document.querySelectorAll(".phone-setup-panel").forEach(p => p.style.display = "none");
+  }
+
+  async function savePhoneSetup(type) {
+    const phoneField = type === "landline" ? "landlineNumber" : "mobileNumber";
+    const phone = document.getElementById(phoneField)?.value?.trim();
+    if (!phone) return showToast("Please enter your phone number", "warn");
+    try {
+      const res = await fetch("/api/settings/connect-number", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) return showToast(data.error || "Failed to save", "err");
+      showPhoneConnected(type, data.phone);
+      showToast("Number connected successfully!", "ok");
+    } catch (err) {
+      showToast("Something went wrong", "err");
+    }
+  }
+
+  async function provisionNumber() {
+    const btn = document.getElementById("provisionBtn");
+    btn.disabled = true; btn.textContent = "Provisioning…";
+    try {
+      const res = await fetch("/api/settings/connect-number", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "new" }),
+      });
+      const data = await res.json();
+      if (!res.ok) return showToast(data.error || "Failed to provision number", "err");
+      showPhoneConnected("new", data.phone);
+      showToast(`Your UK number ${data.phone} is ready!`, "ok");
+    } catch (err) {
+      showToast("Something went wrong", "err");
+    } finally {
+      btn.disabled = false; btn.textContent = "Get My UK Number";
+    }
+  }
+
+  function showPhoneConnected(type, phone) {
+    const labels = { landline: "Landline", mobile: "Mobile (second SIM)", new: "Twilio UK number" };
+    document.getElementById("phoneSetupDone").style.display = "block";
+    document.getElementById("phoneSetupOptions").style.display = "none";
+    document.getElementById("phoneSetupSummary").textContent = `${labels[type] || "Number"}: ${phone}`;
+  }
 </script>
 
 <script>
