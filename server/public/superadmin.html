@@ -184,7 +184,11 @@
     <div class="merr" id="e-addBiz"></div>
     <div class="fg"><label>Business Name</label><input id="ab-name" placeholder="e.g. City Dental Clinic" /></div>
     <div class="fg"><label>Owner Email</label><input id="ab-email" type="email" placeholder="owner@clinic.com" /></div>
-    <div class="fg"><label>Owner Password</label><input id="ab-pass" type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" /></div>
+    <div class="fg">
+      <label>Owner Password</label>
+      <input id="ab-pass" type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" />
+      <div style="font-size:11px;color:#64748B;margin-top:4px;">e.g. Hospital1 — must have uppercase letter and number</div>
+    </div>
     <div class="mactions">
       <button class="btn b-users" onclick="close_('addBiz')">Cancel</button>
       <button class="btn b-primary" onclick="addBusiness()">Create Business</button>
