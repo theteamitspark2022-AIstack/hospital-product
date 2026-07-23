@@ -4,7 +4,7 @@ const COOKIE_NAME = "avc_token";
 
 function requireSuperAdmin(req, res, next) {
   const token = req.cookies?.[COOKIE_NAME];
-  if (!token) return res.status(401).json({ error: "Not authenticated" });
+  if (!token) return res.redirect("/login");
   try {
     const payload = jwt.verify(token, SECRET);
     if (payload.role !== "superadmin") {
