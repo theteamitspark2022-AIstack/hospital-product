@@ -25,6 +25,7 @@ const { authLimiter, apiLimiter } = require("./middleware/rateLimiter");
 const db = require("./models/db");
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Stripe webhook needs raw body — must be registered before express.json()
 app.use("/api/billing/webhook", express.raw({ type: "application/json" }), billingRouter);
