@@ -20,6 +20,7 @@ const superadminRouter = require("./routes/superadmin");
 const seedRouter = require("./routes/seed");
 const voiceRouter = require("./routes/voice");
 const planRouter = require("./routes/plan");
+const pushRouter = require("./routes/push");
 const requireSuperAdmin = require("./middleware/requireSuperAdmin");
 const requirePlanFeature = require("./middleware/requirePlanFeature");
 const { startReminderScheduler } = require("./services/reminderService");
@@ -57,6 +58,7 @@ app.use("/api/appointments", requireAuth, appointmentsRouter);
 app.use("/api/analytics", requireAuth, requirePlanFeature("analytics"), analyticsRouter);
 app.use("/api/calendar", requireAuth, requirePlanFeature("calendar"), calendarRouter);
 app.use("/api/plan", requireAuth, planRouter);
+app.use("/api/push", requireAuth, pushRouter);
 app.use("/api/superadmin", requireSuperAdmin, superadminRouter);
 
 // Serve static assets (logo, etc.)

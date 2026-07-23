@@ -177,6 +177,18 @@ async function migrate() {
       updated_at     TIMESTAMPTZ DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id          SERIAL PRIMARY KEY,
+      business_id VARCHAR(64),
+      endpoint    TEXT UNIQUE NOT NULL,
+      p256dh      TEXT,
+      auth        TEXT,
+      created_at  TIMESTAMPTZ DEFAULT NOW(),
+      updated_at  TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_push_business ON push_subscriptions(business_id)`).catch(() => {});
   console.log("DB migration complete");
 }
 

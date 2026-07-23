@@ -4,6 +4,7 @@ const db = require("../models/db");
 const twilio = require("twilio");
 const { detectKeyword, handleBookingConversation } = require("../services/buddyService");
 const requireAuth = require("../middleware/requireAuth");
+const { sendPushToBusinesses } = require("./push");
 
 const COMPLAINT_REGEX = /\b(complaint|complain|unhappy|not happy|wrong|mistake|error|terrible|awful|disgusting|refund|rude|unacceptable)\b/i;
 
@@ -111,6 +112,14 @@ router.post("/inbound", async (req, res) => {
            VALUES ($1, 'inbound', $2, $3)`,
           [convId, Body, MessageSid]
         );
+
+        // Push notification for new inbound message
+        sendPushToBusinesses(businessId, {
+          title: "New message",
+          body: `${customerNumber.slice(-4).padStart(customerNumber.length, "·")}: ${Body.slice(0, 80)}`,
+          tag: `msg-${convId}`,
+          url: `/dashboard?tab=inbox`,
+        }).catch(() => {});
 
         // STOP — opt out immediately, send final SMS, no further WhatsApp
         if (keyword === "stop") {

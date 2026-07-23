@@ -6,6 +6,10 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "pptxgenjs": "^4.0.1",
     "wait-on": "^9.1.0"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
   }
 }

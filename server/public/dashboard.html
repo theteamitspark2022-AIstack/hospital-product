@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AIVoiceConnect" />
+  <meta name="theme-color" content="#3182ED" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <title>AIVoiceConnect Dashboard — TheTeam ITSpark</title>
   <style>
     /* ── Design tokens — TheTeam ITSpark brand ── */
@@ -429,6 +435,80 @@
     }
 
     @media (prefers-reduced-motion: reduce) { *, .skeleton { animation: none !important; transition: none !important; } }
+
+    /* ── PWA / Mobile ── */
+    /* Bottom nav (mobile only) */
+    #mobile-nav {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 0 0 env(safe-area-inset-bottom, 0);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    #mobile-nav .mnav-inner {
+      display: flex; align-items: stretch;
+    }
+    #mobile-nav .mnav-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 3px; padding: 10px 4px;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-dim); font-size: 10px; font-weight: 600;
+      font-family: inherit; letter-spacing: 0.03em; transition: color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #mobile-nav .mnav-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+    #mobile-nav .mnav-btn.active { color: var(--blue); }
+    #mobile-nav .mnav-btn .badge {
+      position: absolute; top: 6px; right: calc(50% - 18px);
+      background: #EF4444; color: #fff; font-size: 9px; font-weight: 700;
+      width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    }
+    #mobile-nav .mnav-btn { position: relative; }
+
+    @media (max-width: 640px) {
+      #mobile-nav { display: block; }
+      nav.tabs { display: none; }
+      main { padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)); }
+      header { padding: 0 16px; padding-top: env(safe-area-inset-top, 0); }
+    }
+
+    /* Install prompt banner */
+    #install-banner {
+      display: none;
+      position: fixed; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); left: 1rem; right: 1rem;
+      z-index: 300;
+      background: #0d1f38; border: 1px solid rgba(49,130,237,0.4);
+      border-radius: 14px; padding: 1rem 1.1rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: none; align-items: center; gap: 1rem;
+      backdrop-filter: blur(20px);
+    }
+    #install-banner.show { display: flex; }
+    #install-banner .ib-icon { font-size: 2rem; flex-shrink: 0; }
+    #install-banner .ib-text { flex: 1; }
+    #install-banner .ib-title { font-size: 0.9rem; font-weight: 700; color: #F8FAFC; }
+    #install-banner .ib-sub { font-size: 0.78rem; color: #94A3B8; margin-top: 2px; }
+    #install-banner .ib-btns { display: flex; gap: 0.5rem; flex-shrink: 0; }
+    #install-banner .ib-install { background: #3182ED; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    #install-banner .ib-dismiss { background: none; border: none; color: #64748B; font-size: 1.1rem; cursor: pointer; padding: 0.4rem; }
+
+    /* Push prompt */
+    #push-prompt {
+      display: none;
+      position: fixed; top: 80px; left: 1rem; right: 1rem; z-index: 300;
+      background: #0d1f38; border: 1px solid rgba(49,130,237,0.3);
+      border-radius: 14px; padding: 1rem 1.25rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      align-items: center; gap: 1rem;
+    }
+    #push-prompt.show { display: flex; }
+    #push-prompt .pp-text { flex: 1; font-size: 0.85rem; color: #CBD5E1; }
+    #push-prompt .pp-title { font-weight: 700; font-size: 0.9rem; color: #F8FAFC; }
+    #push-prompt .pp-btns { display: flex; gap: 0.5rem; }
+    #push-prompt .pp-allow { background: #3182ED; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    #push-prompt .pp-later { background: none; border: 1px solid #334155; color: #64748B; border-radius: 8px; padding: 0.5rem 0.8rem; font-size: 0.82rem; cursor: pointer; font-family: inherit; }
   </style>
 </head>
 <body>
@@ -1892,6 +1972,181 @@
     const box = document.getElementById("buddyMessages");
     box.scrollTop = box.scrollHeight;
   }
+  // ── PWA: deep-link via ?tab= URL param ──
+  (function() {
+    const p = new URLSearchParams(location.search).get("tab");
+    if (p) { setTimeout(() => switchTab(p), 100); }
+  })();
+
+  // ── Service Worker registration ──
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js").catch(console.warn);
+  }
+
+  // ── Push notifications ──
+  var _pushSubscription = null;
+
+  function urlBase64ToUint8Array(base64String) {
+    var padding = "=".repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    var raw = atob(base64);
+    var output = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
+    return output;
+  }
+
+  async function subscribePush() {
+    try {
+      var res = await fetch("/api/push/vapid-public");
+      if (!res.ok) return;
+      var { publicKey } = await res.json();
+      var reg = await navigator.serviceWorker.ready;
+      var sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+      _pushSubscription = sub;
+      await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription: sub.toJSON() }),
+      });
+      localStorage.setItem("push-ok", "1");
+      document.getElementById("push-prompt").classList.remove("show");
+      showToast("Push notifications enabled", "ok");
+    } catch (err) {
+      console.warn("Push subscribe failed:", err);
+    }
+  }
+
+  // Show push prompt after 8 seconds if not yet granted
+  setTimeout(function() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+      subscribePush();
+      return;
+    }
+    if (Notification.permission !== "denied" && !localStorage.getItem("push-ok") && !localStorage.getItem("push-no")) {
+      document.getElementById("push-prompt").classList.add("show");
+    }
+  }, 8000);
+
+  document.getElementById("pp-allow").addEventListener("click", async function() {
+    var perm = await Notification.requestPermission();
+    if (perm === "granted") { await subscribePush(); }
+    else { document.getElementById("push-prompt").classList.remove("show"); }
+  });
+  document.getElementById("pp-later").addEventListener("click", function() {
+    localStorage.setItem("push-no", "1");
+    document.getElementById("push-prompt").classList.remove("show");
+  });
+
+  // ── PWA Install prompt ──
+  var _installEvent = null;
+  window.addEventListener("beforeinstallprompt", function(e) {
+    e.preventDefault();
+    _installEvent = e;
+    if (!localStorage.getItem("pwa-installed")) {
+      document.getElementById("install-banner").classList.add("show");
+    }
+  });
+  document.getElementById("ib-install").addEventListener("click", async function() {
+    if (!_installEvent) return;
+    _installEvent.prompt();
+    var { outcome } = await _installEvent.userChoice;
+    if (outcome === "accepted") {
+      localStorage.setItem("pwa-installed", "1");
+      document.getElementById("install-banner").classList.remove("show");
+      showToast("App installed! Find AIVoiceConnect on your home screen.", "ok");
+    }
+    _installEvent = null;
+  });
+  document.getElementById("ib-dismiss").addEventListener("click", function() {
+    document.getElementById("install-banner").classList.remove("show");
+    localStorage.setItem("pwa-installed", "1");
+  });
+
+  // Update mobile nav badge
+  function updateMobileNavBadge() {
+    var inboxBadge = document.getElementById("inboxBadge");
+    var mobileInboxBadge = document.getElementById("m-inbox-badge");
+    if (mobileInboxBadge) {
+      mobileInboxBadge.style.display = inboxBadge && inboxBadge.style.display !== "none" ? "flex" : "none";
+    }
+  }
+  var _origLoadInbox = typeof loadInbox === "function" ? loadInbox : null;
+  if (_origLoadInbox) {
+    var __origLoad = loadInbox;
+    loadInbox = async function() { await __origLoad(); updateMobileNavBadge(); };
+  }
+</script>
+
+<!-- Mobile bottom nav -->
+<nav id="mobile-nav" aria-label="Mobile navigation">
+  <div class="mnav-inner">
+    <button class="mnav-btn active" onclick="switchTab('overview');setMobileActive(this)" aria-label="Overview">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Overview
+    </button>
+    <button class="mnav-btn" onclick="switchTab('inbox');setMobileActive(this)" aria-label="Inbox">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span id="m-inbox-badge" class="badge" style="display:none">!</span>
+      Inbox
+    </button>
+    <button class="mnav-btn" onclick="switchTab('appointments');setMobileActive(this)" aria-label="Appointments">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Bookings
+    </button>
+    <button class="mnav-btn" onclick="switchTab('tickets');setMobileActive(this)" aria-label="Tickets">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Tickets
+    </button>
+    <button class="mnav-btn" onclick="switchTab('settings');setMobileActive(this)" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </div>
+</nav>
+
+<!-- Install to home screen prompt -->
+<div id="install-banner" aria-live="polite">
+  <div class="ib-icon">📱</div>
+  <div class="ib-text">
+    <div class="ib-title">Add to Home Screen</div>
+    <div class="ib-sub">Install AIVoiceConnect for instant access — works offline too</div>
+  </div>
+  <div class="ib-btns">
+    <button class="ib-install" id="ib-install">Install</button>
+    <button class="ib-dismiss" id="ib-dismiss" aria-label="Dismiss">✕</button>
+  </div>
+</div>
+
+<!-- Push notifications prompt -->
+<div id="push-prompt" aria-live="polite">
+  <div class="pp-text">
+    <div class="pp-title">🔔 Stay notified</div>
+    Enable push notifications to get alerted for new messages, missed calls, and bookings instantly.
+  </div>
+  <div class="pp-btns">
+    <button class="pp-allow" id="pp-allow">Enable</button>
+    <button class="pp-later" id="pp-later">Later</button>
+  </div>
+</div>
+
+<script>
+  function setMobileActive(btn) {
+    document.querySelectorAll("#mobile-nav .mnav-btn").forEach(function(b){ b.classList.remove("active"); });
+    btn.classList.add("active");
+  }
+  // Sync mobile nav active state when tab changes via desktop tabs
+  var _origSwitchTab = switchTab;
+  switchTab = function(name) {
+    _origSwitchTab(name);
+    document.querySelectorAll("#mobile-nav .mnav-btn").forEach(function(b){
+      var matches = b.getAttribute("onclick") && b.getAttribute("onclick").includes("'" + name + "'");
+      b.classList.toggle("active", !!matches);
+    });
+  };
 </script>
 
 </body>
