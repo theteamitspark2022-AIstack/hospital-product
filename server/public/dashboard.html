@@ -84,6 +84,34 @@
     }
     .btn-signout:hover { background: var(--navy-3); color: #fff; }
 
+    /* ── Toast notifications ── */
+    #toastContainer {
+      position: fixed; bottom: 24px; right: 24px;
+      display: flex; flex-direction: column; gap: 10px;
+      z-index: 9999; pointer-events: none;
+    }
+    .toast {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      padding: 14px 18px; min-width: 280px; max-width: 380px;
+      border-left: 4px solid #3182ED;
+      pointer-events: all;
+      animation: toastIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .toast.ok     { border-left-color: #22C55E; }
+    .toast.err    { border-left-color: #EF4444; }
+    .toast.warn   { border-left-color: #F59E0B; }
+    .toast-icon   { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .toast-body   { flex: 1; }
+    .toast-title  { font-size: 13px; font-weight: 700; color: #0F172A; margin-bottom: 2px; }
+    .toast-msg    { font-size: 12px; color: #64748B; line-height: 1.5; }
+    .toast-close  { background: none; border: none; cursor: pointer; color: #94A3B8; font-size: 16px; line-height: 1; padding: 0; flex-shrink: 0; }
+    .toast-close:hover { color: #334155; }
+    .toast.out    { animation: toastOut 0.2s ease forwards; }
+    @keyframes toastIn  { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:none; } }
+    @keyframes toastOut { from { opacity:1; transform:none; } to { opacity:0; transform:translateX(30px); } }
+
     /* ── User avatar dropdown ── */
     .user-menu { position: relative; }
     .user-avatar {
@@ -379,6 +407,7 @@
   </style>
 </head>
 <body>
+<div id="toastContainer"></div>
 
 <header>
   <div class="header-brand">
@@ -697,6 +726,28 @@
         tab.style.display = "none";
       }
     });
+  }
+
+  // ── Toast ──
+  function showToast(msg, type = "info", title = "") {
+    const icons = { ok: "✅", err: "❌", warn: "⚠️", info: "ℹ️" };
+    const titles = { ok: "Success", err: "Error", warn: "Warning", info: "Info" };
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.innerHTML = `
+      <div class="toast-icon">${icons[type] || icons.info}</div>
+      <div class="toast-body">
+        <div class="toast-title">${title || titles[type] || "Notice"}</div>
+        <div class="toast-msg">${msg}</div>
+      </div>
+      <button class="toast-close" onclick="dismissToast(this.parentElement)">✕</button>`;
+    document.getElementById("toastContainer").appendChild(el);
+    setTimeout(() => dismissToast(el), 5000);
+  }
+  function dismissToast(el) {
+    if (!el || el.classList.contains("out")) return;
+    el.classList.add("out");
+    setTimeout(() => el.remove(), 200);
   }
 
   // ── User menu ──
@@ -1117,14 +1168,14 @@
       setTimeout(() => { textarea.style.borderColor = ""; textarea.style.boxShadow = ""; textarea.placeholder = "Type your reply..."; }, 2500);
       return;
     }
-    if (body.length > 1600) { alert("Reply is too long — WhatsApp messages are limited to 1600 characters."); return; }
+    if (body.length > 1600) { showToast("WhatsApp messages are limited to 1600 characters.", "warn", "Message too long"); return; }
     const res = await fetch(`/api/inbox/${id}/reply`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body }),
     });
     if (res.ok) { textarea.value = ""; loadInbox(); }
-    else alert("Failed to send reply — please try again.");
+    else showToast("Failed to send reply — please try again.", "err");
   }
 
   async function resolve(id) {
@@ -1356,10 +1407,10 @@
     try {
       const res = await fetch(`/api/appointments/test-reminder/${id}`, { method: "POST" });
       const data = await res.json();
-      alert(res.ok ? "Test reminder sent! Check your WhatsApp." : (data.error || "Failed"));
+      res.ok ? showToast("Test reminder sent! Check your WhatsApp.", "ok") : showToast(data.error || "Failed to send reminder.", "err");
       if (res.ok) loadAppointments();
     } catch {
-      alert("Network error");
+      showToast("Network error — please try again.", "err");
     }
   }
 
@@ -1449,9 +1500,9 @@
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
-      else alert(data.error || "Checkout failed");
+      else showToast(data.error || "Checkout failed.", "err", "Payment Error");
     } catch {
-      alert("Could not start checkout. Please try again.");
+      showToast("Could not start checkout. Please try again.", "err", "Payment Error");
     }
   }
 
@@ -1460,9 +1511,9 @@
       const res = await fetch("/api/billing/portal", { method: "POST" });
       const data = await res.json();
       if (data.url) window.open(data.url, "_blank");
-      else alert(data.error || "Could not open portal");
+      else showToast(data.error || "Could not open billing portal.", "err", "Billing Error");
     } catch {
-      alert("Could not open billing portal. Please try again.");
+      showToast("Could not open billing portal. Please try again.", "err", "Billing Error");
     }
   }
 
@@ -1487,7 +1538,7 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ conversationId, customerNumber, description: desc, priority: priority.toUpperCase() }),
     });
-    alert("Ticket raised!");
+    showToast("Ticket raised successfully.", "ok", "Ticket Created");
   }
 </script>
 
