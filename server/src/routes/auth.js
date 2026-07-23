@@ -104,12 +104,14 @@ router.post("/logout", (_req, res) => {
 });
 
 // GET /api/auth/me — check current session
-router.get("/me", (req, res) => {
+router.get("/me", async (req, res) => {
   const token = req.cookies?.[COOKIE_NAME];
   if (!token) return res.status(401).json({ error: "Not authenticated" });
   try {
     const payload = jwt.verify(token, SECRET);
-    res.json({ userId: payload.userId, businessId: payload.businessId, role: payload.role });
+    const { rows } = await db.query("SELECT email FROM users WHERE id = $1", [payload.userId]);
+    const email = rows[0]?.email || null;
+    res.json({ userId: payload.userId, businessId: payload.businessId, role: payload.role, email });
   } catch {
     res.status(401).json({ error: "Session expired" });
   }
