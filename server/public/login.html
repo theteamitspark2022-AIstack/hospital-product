@@ -316,7 +316,7 @@
   function showTab(tab) {
     document.querySelectorAll(".tab").forEach((t, i) => t.classList.toggle("active", ["login","signup"][i] === tab));
     document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + tab));
-    const titles = { login: ["Welcome back", "Sign in to your AIVoiceConnect dashboard"], signup: ["Get started", "Create your free AIVoiceConnect account"] };
+    const titles = { login: ["Welcome back", "Sign in to your AIVoiceConnect dashboard"], signup: ["Welcome to AIVoiceConnect ✦", "Create your account and start automating customer communication"] };
     const t = titles[tab] || titles.login;
     document.getElementById("formTitle").textContent = t[0];
     document.getElementById("formSub").textContent   = t[1];
