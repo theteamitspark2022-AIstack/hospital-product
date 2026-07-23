@@ -1053,7 +1053,8 @@
       // Limit warning
       const warn = document.getElementById("planLimitWarn");
       const warnings = [];
-      if (d.limits.agents !== null && d.usage.agents >= d.limits.agents)
+      // Only warn about agent limit if there are actual extra agents beyond the owner
+      if (d.limits.agents !== null && d.usage.agents > d.limits.agents)
         warnings.push(`Agent limit reached (${d.usage.agents}/${d.limits.agents}) — upgrade to add more team members.`);
       if (d.limits.callsPerMonth !== null && d.usage.callsThisMonth >= d.limits.callsPerMonth * 0.9)
         warnings.push(`Calls this month: ${d.usage.callsThisMonth}/${d.limits.callsPerMonth} — approaching your monthly limit.`);
