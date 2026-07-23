@@ -114,4 +114,76 @@ async function getAutoReply(customerMessage, businessName, sector) {
   }
 }
 
-module.exports = { detectKeyword, getAutoReply };
+const BOOKING_SYSTEM = `You are {BUSINESS}'s friendly AI receptionist on WhatsApp. Your job is to have a natural conversation with the customer to book them an appointment.
+
+BOOKING FLOW:
+1. Greet warmly and ask how you can help.
+2. If they want to book/reschedule, collect: their FULL NAME, preferred DATE (day and month), and preferred TIME.
+3. Once you have all three, confirm back to them and output a booking tag on its own line (do not show this to the customer — it will be processed automatically):
+   [BOOK:name=<full name>,date=<YYYY-MM-DD>,time=<HH:MM>,notes=<brief reason if given>]
+   Then on the next line write your friendly confirmation message to the customer.
+4. If today's date context helps, use it. If they say "tomorrow" or "next Monday", resolve to an actual date. Today is {TODAY}.
+5. If they want to cancel, reschedule, or have a different query, handle it naturally and tell them a team member will follow up if needed.
+
+RULES:
+- Keep every message SHORT — 1 to 3 sentences like a real WhatsApp message
+- Sound human, warm, and helpful
+- Never reveal you are an AI
+- Never make up specific slot availability — just confirm what the customer requests
+- Only output the [BOOK:...] tag when you have ALL required details (name, date, time)`;
+
+async function handleBookingConversation(messageHistory, businessName, sector, today) {
+  const groq = getClient();
+  if (!groq) return { reply: null, booking: null };
+
+  const systemPrompt = BOOKING_SYSTEM
+    .replace("{BUSINESS}", businessName || "us")
+    .replace("{TODAY}", today || new Date().toISOString().split("T")[0]);
+
+  // Build Groq message history from DB messages
+  const groqMessages = messageHistory.map(m => ({
+    role: m.direction === "inbound" ? "user" : "assistant",
+    content: m.body,
+  }));
+
+  try {
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 300,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...groqMessages,
+      ],
+    });
+
+    const raw = completion.choices[0]?.message?.content?.trim() || "";
+
+    // Extract [BOOK:...] tag if present
+    const bookMatch = raw.match(/\[BOOK:([^\]]+)\]/);
+    let booking = null;
+    if (bookMatch) {
+      const parts = Object.fromEntries(
+        bookMatch[1].split(",").map(p => {
+          const [k, ...v] = p.split("=");
+          return [k.trim(), v.join("=").trim()];
+        })
+      );
+      booking = {
+        name: parts.name || null,
+        date: parts.date || null,
+        time: parts.time || null,
+        notes: parts.notes || null,
+      };
+    }
+
+    // Strip the [BOOK:...] line from the customer-facing reply
+    const reply = raw.replace(/\[BOOK:[^\]]+\]\n?/, "").trim() || null;
+
+    return { reply, booking };
+  } catch (err) {
+    console.error("Buddy booking AI error:", err.message);
+    return { reply: null, booking: null };
+  }
+}
+
+module.exports = { detectKeyword, getAutoReply, handleBookingConversation };

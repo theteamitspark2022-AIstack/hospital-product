@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../models/db");
 const twilio = require("twilio");
-const { detectKeyword, getAutoReply } = require("../services/buddyService");
+const { detectKeyword, handleBookingConversation } = require("../services/buddyService");
 const requireAuth = require("../middleware/requireAuth");
 
 const COMPLAINT_REGEX = /\b(complaint|complain|unhappy|not happy|wrong|mistake|error|terrible|awful|disgusting|refund|rude|unacceptable)\b/i;
@@ -150,9 +150,32 @@ router.post("/inbound", async (req, res) => {
             await autoRaiseTicket(convId, customerNumber, Body, businessId);
           }
 
-          // Free-text — Buddy AI reply (in addition to ack already sent)
+          // Multi-turn Buddy AI — handles booking conversation with full history
           const settings = await getBusinessSettings(businessId);
-          const aiReply = await getAutoReply(Body, settings.business_name, settings.sector);
+          const { rows: history } = await db.query(
+            `SELECT direction, body FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC`,
+            [convId]
+          );
+          const today = new Date().toISOString().split("T")[0];
+          const { reply: aiReply, booking } = await handleBookingConversation(
+            history, settings.business_name, settings.sector, today
+          );
+
+          // If Buddy extracted booking details, save the appointment
+          if (booking?.name && booking?.date && booking?.time) {
+            try {
+              const apptAt = new Date(`${booking.date}T${booking.time}:00`);
+              await db.query(
+                `INSERT INTO appointments (business_id, customer_number, customer_name, appointment_at, notes, status)
+                 VALUES ($1, $2, $3, $4, $5, 'confirmed')`,
+                [businessId, customerNumber, booking.name, apptAt, booking.notes || "Booked via WhatsApp"]
+              );
+              console.log(`Appointment booked for ${booking.name} on ${booking.date} at ${booking.time}`);
+            } catch (err) {
+              console.error("Appointment insert failed:", err.message);
+            }
+          }
+
           if (aiReply) {
             const sid = await sendWhatsApp(customerNumber, aiReply);
             await db.query(
