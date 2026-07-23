@@ -25,7 +25,10 @@ router.get("/", async (req, res) => {
       db.query("SELECT COUNT(*) FROM calls WHERE business_id = $1 AND created_at >= CURRENT_DATE - INTERVAL '1 day' AND created_at < CURRENT_DATE", [businessId]),
       db.query("SELECT COUNT(*) FROM calls WHERE business_id = $1 AND created_at >= CURRENT_DATE - INTERVAL '7 days'", [businessId]),
       db.query(`
-        SELECT DATE(created_at) AS day, COUNT(*) AS count
+        SELECT DATE(created_at) AS day,
+          COUNT(*) AS count,
+          COUNT(*) FILTER (WHERE status = 'completed') AS answered,
+          COUNT(*) FILTER (WHERE status IN ('no-answer','busy','failed','canceled')) AS missed
         FROM calls WHERE business_id = $1
           AND created_at >= CURRENT_DATE - INTERVAL '6 days'
         GROUP BY DATE(created_at) ORDER BY day ASC

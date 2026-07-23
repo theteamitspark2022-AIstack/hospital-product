@@ -382,15 +382,21 @@
       <div class="stat-card"><div class="stat-label">Calls Today</div><div class="stat-value" id="statCallsToday">—</div><div class="stat-trend neutral" id="statCallsTrend"></div></div>
       <div class="stat-card"><div class="stat-label">Calls This Week</div><div class="stat-value" id="statCallsWeek">—</div><div class="stat-sub">last 7 days</div></div>
       <div class="stat-card"><div class="stat-label">Open Chats</div><div class="stat-value" id="statConversations">—</div><div class="stat-sub">WhatsApp threads</div></div>
-      <div class="stat-card" id="statTicketCard"><div class="stat-label">Open Tickets</div><div class="stat-value" id="statTickets">—</div><div class="stat-sub" id="statTicketSub"></div></div>
+      <div class="stat-card" id="statTicketCard" onclick="showTab('tickets')" style="cursor:pointer;" title="View open tickets"><div class="stat-label">Open Tickets</div><div class="stat-value" id="statTickets">—</div><div class="stat-sub" id="statTicketSub"></div></div>
       <div class="stat-card"><div class="stat-label">Appointments</div><div class="stat-value" id="statAppts">—</div><div class="stat-sub">this week</div></div>
       <div class="stat-card"><div class="stat-label">Resolved</div><div class="stat-value" id="statResolved">—</div><div class="stat-sub">tickets this week</div></div>
     </div>
 
     <!-- Sparkline chart -->
     <div class="sparkline-wrap">
-      <h3>Calls — Last 7 Days</h3>
-      <canvas id="sparkCanvas" height="70"></canvas>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <h3>Calls — Last 7 Days</h3>
+        <div style="display:flex;gap:14px;font-size:11px;font-weight:600;color:#64748B;">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#22C55E;margin-right:4px;vertical-align:middle;"></span>Answered</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#EF4444;margin-right:4px;vertical-align:middle;"></span>Missed</span>
+        </div>
+      </div>
+      <canvas id="sparkCanvas" height="80"></canvas>
     </div>
 
     <div class="card">
@@ -810,42 +816,63 @@
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
 
-    // Build 7-day buckets
+    // Build 7-day buckets with answered/missed breakdown
     const days = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i);
       const key = d.toISOString().slice(0, 10);
       const match = data.find(r => r.day && r.day.slice(0, 10) === key);
-      days.push({ label: d.toLocaleDateString("en-GB", { weekday: "short" }), count: match ? parseInt(match.count) : 0 });
+      days.push({
+        label:    d.toLocaleDateString("en-GB", { weekday: "short" }),
+        answered: match ? parseInt(match.answered || 0) : 0,
+        missed:   match ? parseInt(match.missed   || 0) : 0,
+        total:    match ? parseInt(match.count    || 0) : 0,
+      });
     }
 
-    const max = Math.max(...days.map(d => d.count), 1);
-    const pad = { l: 10, r: 10, t: 10, b: 22 };
+    const max = Math.max(...days.map(d => d.total), 1);
+    const pad = { l: 10, r: 10, t: 14, b: 22 };
     const chartW = W - pad.l - pad.r;
     const chartH = H - pad.t - pad.b;
-    const barW = chartW / days.length * 0.55;
-    const gap   = chartW / days.length;
+    const slotW  = chartW / days.length;
+    const barW   = slotW * 0.28;
+    const barGap = 3;
 
     days.forEach((d, i) => {
-      const x = pad.l + i * gap + gap / 2 - barW / 2;
-      const barH = d.count === 0 ? 2 : Math.max(4, (d.count / max) * chartH);
-      const y = pad.t + chartH - barH;
+      const slotX = pad.l + i * slotW + slotW / 2;
 
-      ctx.fillStyle = d.count > 0 ? "#0EA5E9" : "#e2e8f0";
-      ctx.beginPath();
-      ctx.roundRect(x, y, barW, barH, [3, 3, 0, 0]);
-      ctx.fill();
-
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "10px -apple-system, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(d.label, x + barW / 2, H - 6);
-
-      if (d.count > 0) {
-        ctx.fillStyle = "#334155";
-        ctx.font = "bold 10px -apple-system, sans-serif";
-        ctx.fillText(d.count, x + barW / 2, y - 4);
+      // Answered bar (left of centre)
+      if (d.answered > 0) {
+        const bh = Math.max(4, (d.answered / max) * chartH);
+        const x  = slotX - barW - barGap / 2;
+        const y  = pad.t + chartH - bh;
+        ctx.fillStyle = "#22C55E";
+        ctx.beginPath(); ctx.roundRect(x, y, barW, bh, [3,3,0,0]); ctx.fill();
+        ctx.fillStyle = "#15803D"; ctx.font = "bold 9px -apple-system,sans-serif";
+        ctx.textAlign = "center"; ctx.fillText(d.answered, x + barW/2, y - 3);
       }
+
+      // Missed bar (right of centre)
+      if (d.missed > 0) {
+        const bh = Math.max(4, (d.missed / max) * chartH);
+        const x  = slotX + barGap / 2;
+        const y  = pad.t + chartH - bh;
+        ctx.fillStyle = "#EF4444";
+        ctx.beginPath(); ctx.roundRect(x, y, barW, bh, [3,3,0,0]); ctx.fill();
+        ctx.fillStyle = "#B91C1C"; ctx.font = "bold 9px -apple-system,sans-serif";
+        ctx.textAlign = "center"; ctx.fillText(d.missed, x + barW/2, y - 3);
+      }
+
+      // Empty day placeholder
+      if (d.total === 0) {
+        const x = slotX - barW;
+        ctx.fillStyle = "#E2E8F0";
+        ctx.beginPath(); ctx.roundRect(x, pad.t + chartH - 2, barW * 2 + barGap, 2, [1,1,0,0]); ctx.fill();
+      }
+
+      // Day label
+      ctx.fillStyle = "#94A3B8"; ctx.font = "10px -apple-system,sans-serif";
+      ctx.textAlign = "center"; ctx.fillText(d.label, slotX, H - 6);
     });
   }
 
@@ -997,7 +1024,14 @@
   async function sendReply(id) {
     const textarea = document.getElementById(`replyText-${id}`);
     const body = textarea.value.trim();
-    if (!body) { alert("Reply cannot be empty."); return; }
+    if (!body) {
+      textarea.style.borderColor = "#EF4444";
+      textarea.style.boxShadow = "0 0 0 3px #FEE2E2";
+      textarea.placeholder = "Please enter a reply before sending";
+      textarea.focus();
+      setTimeout(() => { textarea.style.borderColor = ""; textarea.style.boxShadow = ""; textarea.placeholder = "Type your reply..."; }, 2500);
+      return;
+    }
     if (body.length > 1600) { alert("Reply is too long — WhatsApp messages are limited to 1600 characters."); return; }
     const res = await fetch(`/api/inbox/${id}/reply`, {
       method: "POST",

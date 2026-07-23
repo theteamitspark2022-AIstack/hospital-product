@@ -10,23 +10,31 @@ router.get("/", async (req, res) => {
   let isLive = false;
   let callCount = 0;
 
+  let settingsConfigured = false;
   if (db.isConnected()) {
     try {
       const biz = await db.query("SELECT is_live FROM businesses WHERE id = $1", [businessId]);
       if (biz.rows.length) isLive = biz.rows[0].is_live;
       const calls = await db.query("SELECT COUNT(*) FROM calls WHERE business_id = $1::varchar", [businessId]);
       callCount = parseInt(calls.rows[0].count);
+      const settings = await db.query(
+        "SELECT callback_number, sector FROM settings WHERE business_id = $1 LIMIT 1", [businessId]
+      );
+      if (settings.rows.length) {
+        const s = settings.rows[0];
+        settingsConfigured = !!(s.callback_number && s.sector);
+      }
     } catch (err) {
       console.error("Status query failed:", err.message);
     }
   }
 
   const steps = [
-    { key: "signup",       label: "Sign up",           done: true },
-    { key: "verify_email", label: "Verify email",       done: true },
-    { key: "templates",    label: "Check templates",    done: true },
-    { key: "test_call",    label: "Make test call",     done: callCount > 0 },
-    { key: "go_live",      label: "Go live",            done: isLive },
+    { key: "signup",       label: "Sign up",            done: true },
+    { key: "verify_email", label: "Verify email",        done: true },
+    { key: "templates",    label: "Configure settings",  done: settingsConfigured },
+    { key: "test_call",    label: "Make test call",      done: callCount > 0 },
+    { key: "go_live",      label: "Go live",             done: isLive },
   ];
 
   const completed = steps.filter((s) => s.done).length;
