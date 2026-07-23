@@ -17,6 +17,7 @@ const appointmentsRouter = require("./routes/appointments");
 const analyticsRouter = require("./routes/analytics");
 const calendarRouter = require("./routes/calendar");
 const superadminRouter = require("./routes/superadmin");
+const seedRouter = require("./routes/seed");
 const planRouter = require("./routes/plan");
 const requireSuperAdmin = require("./middleware/requireSuperAdmin");
 const requirePlanFeature = require("./middleware/requirePlanFeature");
@@ -75,6 +76,7 @@ app.get("/superadmin", requireSuperAdmin, (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/superadmin.html"));
 });
 
+app.use("/api/seed", seedRouter);
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 
