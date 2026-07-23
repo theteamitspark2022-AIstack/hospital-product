@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const db = require("../models/db");
+const { sendWelcomeEmail, sendPasswordResetEmail } = require("../services/emailService");
 
 const SECRET = process.env.JWT_SECRET || "changeme-set-JWT_SECRET-in-env";
 const COOKIE_NAME = "avc_token";
@@ -64,6 +65,7 @@ router.post("/signup", async (req, res) => {
     );
 
     setAuthCookie(res, { userId: user.rows[0].id, businessId, role: "owner" });
+    sendWelcomeEmail(email.toLowerCase(), businessName).catch(() => {});
     res.status(201).json({ ok: true, businessId });
   } catch (err) {
     console.error("Signup error:", err.message);
@@ -110,6 +112,71 @@ router.get("/me", (req, res) => {
     res.json({ userId: payload.userId, businessId: payload.businessId, role: payload.role });
   } catch {
     res.status(401).json({ error: "Session expired" });
+  }
+});
+
+// POST /api/auth/forgot-password
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email required" });
+  try {
+    const { rows } = await db.query("SELECT id FROM users WHERE email = $1", [email.toLowerCase().trim()]);
+    // Always respond OK to avoid email enumeration
+    if (!rows.length) return res.json({ ok: true });
+
+    const userId = rows[0].id;
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await db.query(
+      "DELETE FROM password_reset_tokens WHERE user_id = $1",
+      [userId]
+    );
+    await db.query(
+      "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)",
+      [userId, token, expiresAt]
+    );
+
+    const appUrl = process.env.APP_URL || "https://hospital-product.onrender.com";
+    const resetUrl = `${appUrl}/reset-password?token=${token}`;
+    await sendPasswordResetEmail(email.toLowerCase().trim(), resetUrl);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Forgot password error:", err.message);
+    res.status(500).json({ error: "Failed to process request" });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post("/reset-password", async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) return res.status(400).json({ error: "Token and password are required" });
+
+  if (password.length < 8 || password.length > 15)
+    return res.status(400).json({ error: "Password must be 8–15 characters" });
+  if (!/[A-Z]/.test(password))
+    return res.status(400).json({ error: "Password must contain at least one uppercase letter" });
+  if (!/[0-9]/.test(password))
+    return res.status(400).json({ error: "Password must contain at least one number" });
+  if (!/[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>/?]/.test(password))
+    return res.status(400).json({ error: "Password must contain at least one special character" });
+
+  try {
+    const { rows } = await db.query(
+      "SELECT * FROM password_reset_tokens WHERE token = $1 AND used = FALSE AND expires_at > NOW()",
+      [token]
+    );
+    if (!rows.length) return res.status(400).json({ error: "Invalid or expired reset link" });
+
+    const userId = rows[0].user_id;
+    const hash = await bcrypt.hash(password, 10);
+    await db.query("UPDATE users SET password_hash = $1 WHERE id = $2", [hash, userId]);
+    await db.query("UPDATE password_reset_tokens SET used = TRUE WHERE token = $1", [token]);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Reset password error:", err.message);
+    res.status(500).json({ error: "Failed to reset password" });
   }
 });
 

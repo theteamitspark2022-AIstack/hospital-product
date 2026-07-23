@@ -66,6 +66,10 @@ app.get("/dashboard", requireAuth, (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/dashboard.html"));
 });
 
+app.get("/reset-password", (_req, res) => {
+  res.sendFile(path.join(__dirname, "../public/reset-password.html"));
+});
+
 app.get("/superadmin", requireSuperAdmin, (_req, res) => {
   res.sendFile(path.join(__dirname, "../public/superadmin.html"));
 });
@@ -76,11 +80,11 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
 app.use(errorHandler);
 
 async function start() {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   db.connect();
   await db.migrate();
   startReminderScheduler();
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
 if (require.main === module) {
