@@ -27,11 +27,13 @@ router.post("/signup", async (req, res) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: "Enter a valid email address" });
   }
-  if (password.length < 8) {
-    return res.status(400).json({ error: "Password must be at least 8 characters" });
+  if (password.length < 8 || password.length > 15) {
+    return res.status(400).json({ error: "Password must be 8–15 characters" });
   }
-  if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
-    return res.status(400).json({ error: "Password must contain at least one uppercase letter and one number" });
+  if (!/[A-Z]/.test(password)) return res.status(400).json({ error: "Password must contain at least one uppercase letter" });
+  if (!/[0-9]/.test(password)) return res.status(400).json({ error: "Password must contain at least one number" });
+  if (!/[!@#$%^&*()\-_=+\[\]{};':"\\|,.<>/?]/.test(password)) {
+    return res.status(400).json({ error: "Password must contain at least one special character (!@#$%^&*...)" });
   }
   if (businessName.trim().length < 2 || businessName.trim().length > 100) {
     return res.status(400).json({ error: "Business name must be between 2 and 100 characters" });

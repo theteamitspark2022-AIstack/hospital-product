@@ -15,60 +15,61 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Left panel (brand) ── */
+    /* ── Left panel ── */
     .brand-panel {
       display: none;
       width: 42%;
-      background: linear-gradient(135deg, #020817 0%, #0d1f3c 60%, #1368D8 100%);
-      padding: 48px;
+      background: linear-gradient(160deg, #020817 0%, #0d1f3c 55%, #1368D8 100%);
+      padding: 44px 48px;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 36px;
       position: relative;
       overflow: hidden;
     }
     .brand-panel::before {
       content: "";
       position: absolute;
-      width: 420px; height: 420px;
+      width: 380px; height: 380px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(49,130,237,0.18) 0%, transparent 70%);
-      top: -80px; right: -120px;
+      background: radial-gradient(circle, rgba(49,130,237,0.15) 0%, transparent 70%);
+      top: -60px; right: -100px;
+      pointer-events: none;
     }
     .brand-panel::after {
       content: "";
       position: absolute;
-      width: 280px; height: 280px;
+      width: 240px; height: 240px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(49,130,237,0.12) 0%, transparent 70%);
-      bottom: 60px; left: -60px;
+      background: radial-gradient(circle, rgba(49,130,237,0.1) 0%, transparent 70%);
+      bottom: 40px; left: -50px;
+      pointer-events: none;
     }
-    .brand-logo { height: 44px; width: auto; position: relative; z-index: 1; mix-blend-mode: screen; }
-    .brand-tagline {
-      position: relative; z-index: 1;
-    }
-    .brand-tagline h2 {
-      font-size: 26px; font-weight: 800; color: #fff;
-      line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 14px;
-    }
-    .brand-tagline p { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.6; }
-    .brand-features { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 12px; }
+    .brand-logo { height: 40px; width: auto; position: relative; z-index: 1; mix-blend-mode: screen; }
+
+    .brand-tagline { position: relative; z-index: 1; }
+    .brand-tagline h2 { font-size: 24px; font-weight: 800; color: #fff; line-height: 1.25; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .brand-tagline p { font-size: 14px; color: rgba(255,255,255,0.6); line-height: 1.65; }
+
+    .brand-features { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; }
     .brand-feature {
       display: flex; align-items: center; gap: 10px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 10px;
-      padding: 12px 14px;
+      padding: 11px 14px;
     }
     .brand-feature-icon {
-      width: 32px; height: 32px; background: rgba(49,130,237,0.25);
-      border-radius: 8px; display: flex; align-items: center;
-      justify-content: center; font-size: 15px; flex-shrink: 0;
+      width: 30px; height: 30px; background: rgba(49,130,237,0.25);
+      border-radius: 7px; display: flex; align-items: center;
+      justify-content: center; font-size: 14px; flex-shrink: 0;
     }
     .brand-feature-text { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500; }
 
+    .brand-footer { position: relative; z-index: 1; font-size: 11px; color: rgba(255,255,255,0.3); }
+
     @media (min-width: 768px) { .brand-panel { display: flex; } }
 
-    /* ── Right panel (form) ── */
+    /* ── Right panel ── */
     .form-panel {
       flex: 1;
       display: flex;
@@ -76,84 +77,89 @@
       justify-content: center;
       padding: 32px 24px;
     }
-    .form-card {
-      width: 100%;
-      max-width: 400px;
-    }
+    .form-card { width: 100%; max-width: 400px; }
 
-    /* Mobile logo */
-    .mobile-logo {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 32px;
-    }
-    .mobile-logo img { height: 28px; width: auto; }
-    .mobile-logo span {
-      font-size: 14px; font-weight: 600; color: #64748B;
-    }
+    .mobile-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .mobile-logo img { height: 26px; width: auto; }
+    .mobile-logo span { font-size: 14px; font-weight: 600; color: #64748B; }
     @media (min-width: 768px) { .mobile-logo { display: none; } }
 
-    .form-heading { margin-bottom: 28px; }
-    .form-heading h1 { font-size: 22px; font-weight: 800; color: #020817; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .form-heading { margin-bottom: 22px; }
+    .form-heading h1 { font-size: 22px; font-weight: 800; color: #020817; letter-spacing: -0.02em; margin-bottom: 4px; }
     .form-heading p { font-size: 14px; color: #64748B; }
 
     /* Tabs */
-    .tabs {
-      display: flex; gap: 0;
-      background: #F1F5F9; border-radius: 10px; padding: 4px;
-      margin-bottom: 24px;
-    }
-    .tab {
-      flex: 1; text-align: center; padding: 9px 12px;
-      font-size: 13px; font-weight: 600; color: #64748B;
-      cursor: pointer; border-radius: 7px; transition: all 0.15s;
-    }
-    .tab.active {
-      background: #fff; color: #020817;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-    }
+    .tabs { display: flex; background: #F1F5F9; border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+    .tab { flex: 1; text-align: center; padding: 8px 12px; font-size: 13px; font-weight: 600; color: #64748B; cursor: pointer; border-radius: 7px; transition: all 0.15s; }
+    .tab.active { background: #fff; color: #020817; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
-    /* Form */
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 12px; font-weight: 700; color: #0F172A; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
-    input {
-      width: 100%; padding: 11px 14px; border: 1px solid #E2E8F0;
+    /* Form groups */
+    .form-group { margin-bottom: 14px; }
+    label { display: block; font-size: 11px; font-weight: 700; color: #0F172A; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .input-wrap { position: relative; }
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%; padding: 11px 38px 11px 14px; border: 1.5px solid #E2E8F0;
       border-radius: 9px; font-size: 14px; color: #020817;
       outline: none; font-family: inherit; background: #fff;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     input:focus { border-color: #3182ED; box-shadow: 0 0 0 3px #EBF4FF; }
-    input::placeholder { color: #94A3B8; }
+    input::placeholder { color: #CBD5E1; }
+    input.valid   { border-color: #22C55E; }
+    input.invalid { border-color: #EF4444; }
+    input.valid:focus   { box-shadow: 0 0 0 3px #DCFCE7; }
+    input.invalid:focus { box-shadow: 0 0 0 3px #FEE2E2; }
+
+    /* Validation icon inside input */
+    .val-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; display: none; pointer-events: none; }
+
+    /* Field-level message */
+    .field-msg { font-size: 11px; margin-top: 4px; min-height: 16px; line-height: 1.4; display: none; }
+    .field-msg.err  { color: #DC2626; display: block; }
+    .field-msg.ok   { color: #16A34A; display: block; }
+    .field-msg.hint { color: #64748B; display: block; }
+
+    /* Password rules checklist */
+    .pwd-rules { margin-top: 6px; display: none; flex-direction: column; gap: 4px; }
+    .pwd-rules.visible { display: flex; }
+    .pwd-rule { font-size: 11px; color: #94A3B8; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
+    .pwd-rule.met { color: #16A34A; }
+    .pwd-rule::before { content: "○"; font-size: 9px; flex-shrink: 0; }
+    .pwd-rule.met::before { content: "●"; color: #16A34A; }
+
+    /* Global error */
+    .error {
+      background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; margin-bottom: 14px; display: none; font-weight: 500;
+    }
+    .error.visible { display: block; }
 
     .btn {
-      width: 100%; padding: 13px; margin-top: 8px;
+      width: 100%; padding: 13px; margin-top: 6px;
       background: linear-gradient(135deg, #3182ED, #1368D8);
       color: #fff; border: none; border-radius: 9px;
       font-size: 14px; font-weight: 700; cursor: pointer;
-      letter-spacing: 0.01em;
       box-shadow: 0 2px 8px rgba(49,130,237,0.35);
       transition: opacity 0.15s, box-shadow 0.15s;
     }
-    .btn:hover { opacity: 0.92; box-shadow: 0 4px 14px rgba(49,130,237,0.4); }
-    .btn:disabled { background: #94A3B8; cursor: default; box-shadow: none; }
-
-    .error {
-      background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;
-      border-radius: 8px; padding: 11px 14px;
-      font-size: 13px; margin-bottom: 16px; display: none;
-      font-weight: 500;
-    }
-    .error.visible { display: block; }
+    .btn:hover:not(:disabled) { opacity: 0.92; box-shadow: 0 4px 14px rgba(49,130,237,0.4); }
+    .btn:disabled { background: #CBD5E1; cursor: default; box-shadow: none; }
 
     .panel { display: none; }
     .panel.active { display: block; }
 
-    .form-footer { text-align: center; font-size: 12px; color: #94A3B8; margin-top: 24px; line-height: 1.6; }
+    .form-footer { text-align: center; font-size: 12px; color: #94A3B8; margin-top: 20px; line-height: 1.6; }
     .form-footer strong { color: #3182ED; }
+
+    /* Password toggle */
+    .pwd-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #94A3B8; padding: 0; line-height: 1; }
   </style>
 </head>
 <body>
 
-<!-- Left brand panel (desktop only) -->
+<!-- Left brand panel -->
 <div class="brand-panel">
   <img src="/logo.webp" alt="TheTeam ITSpark" class="brand-logo" />
 
@@ -169,7 +175,7 @@
     </div>
     <div class="brand-feature">
       <div class="brand-feature-icon">🎫</div>
-      <div class="brand-feature-text">Smart ticket & SLA management</div>
+      <div class="brand-feature-text">Smart ticket &amp; SLA management</div>
     </div>
     <div class="brand-feature">
       <div class="brand-feature-icon">📅</div>
@@ -180,6 +186,8 @@
       <div class="brand-feature-text">Buddy AI for intelligent responses</div>
     </div>
   </div>
+
+  <div class="brand-footer">© 2026 TheTeam ITSpark · UK-based AI solutions</div>
 </div>
 
 <!-- Right form panel -->
@@ -192,8 +200,8 @@
     </div>
 
     <div class="form-heading">
-      <h1>Welcome back</h1>
-      <p>Sign in to your AIVoiceConnect dashboard</p>
+      <h1 id="formTitle">Welcome back</h1>
+      <p id="formSub">Sign in to your AIVoiceConnect dashboard</p>
     </div>
 
     <div class="tabs">
@@ -201,35 +209,68 @@
       <div class="tab" onclick="showTab('signup')">Create Account</div>
     </div>
 
-    <div id="error" class="error"></div>
+    <div id="globalError" class="error"></div>
 
-    <!-- Login panel -->
+    <!-- ── Login ── -->
     <div class="panel active" id="panel-login">
       <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="loginEmail" placeholder="you@example.com" />
+        <label for="loginEmail">Email</label>
+        <div class="input-wrap">
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"
+            oninput="validateLoginEmail()" onblur="validateLoginEmail(true)" />
+        </div>
+        <div class="field-msg" id="msg-loginEmail"></div>
       </div>
+
       <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" />
+        <label for="loginPassword">Password</label>
+        <div class="input-wrap">
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
+            oninput="clearFieldError('loginPassword')" />
+          <button class="pwd-toggle" type="button" onclick="togglePwd('loginPassword', this)" tabindex="-1">👁</button>
+        </div>
+        <div class="field-msg" id="msg-loginPassword"></div>
       </div>
+
       <button class="btn" id="loginBtn" onclick="login()">Sign In</button>
     </div>
 
-    <!-- Signup panel -->
+    <!-- ── Sign Up ── -->
     <div class="panel" id="panel-signup">
       <div class="form-group">
-        <label>Business Name</label>
-        <input type="text" id="signupBusiness" placeholder="e.g. Smith & Sons Plumbing" />
+        <label for="signupBusiness">Business Name</label>
+        <div class="input-wrap">
+          <input type="text" id="signupBusiness" placeholder="e.g. Smith Dental Clinic"
+            oninput="validateBusiness()" onblur="validateBusiness(true)" />
+        </div>
+        <div class="field-msg" id="msg-signupBusiness"></div>
       </div>
+
       <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="signupEmail" placeholder="you@example.com" />
+        <label for="signupEmail">Email</label>
+        <div class="input-wrap">
+          <input type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email"
+            oninput="validateSignupEmail()" onblur="validateSignupEmail(true)" />
+        </div>
+        <div class="field-msg" id="msg-signupEmail"></div>
       </div>
+
       <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="signupPassword" placeholder="Min 8 chars, 1 uppercase, 1 number" />
+        <label for="signupPassword">Password</label>
+        <div class="input-wrap">
+          <input type="password" id="signupPassword" placeholder="Create a strong password" autocomplete="new-password"
+            oninput="validatePassword()" onfocus="showRules()" />
+          <button class="pwd-toggle" type="button" onclick="togglePwd('signupPassword', this)" tabindex="-1">👁</button>
+        </div>
+        <div class="field-msg" id="msg-signupPassword"></div>
+        <div class="pwd-rules" id="pwdRules">
+          <div class="pwd-rule" id="rule-len">8–15 characters</div>
+          <div class="pwd-rule" id="rule-upper">At least 1 uppercase letter</div>
+          <div class="pwd-rule" id="rule-num">At least 1 number</div>
+          <div class="pwd-rule" id="rule-special">At least 1 special character (!@#$%^&amp;*)</div>
+        </div>
       </div>
+
       <button class="btn" id="signupBtn" onclick="signup()">Create Account</button>
     </div>
 
@@ -240,91 +281,153 @@
 </div>
 
 <script>
+  /* ── Tab switching ── */
   function showTab(tab) {
-    document.querySelectorAll(".tab").forEach((t, i) => {
-      t.classList.toggle("active", ["login","signup"][i] === tab);
+    document.querySelectorAll(".tab").forEach((t, i) => t.classList.toggle("active", ["login","signup"][i] === tab));
+    document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === "panel-" + tab));
+    document.getElementById("formTitle").textContent = tab === "login" ? "Welcome back" : "Get started";
+    document.getElementById("formSub").textContent   = tab === "login" ? "Sign in to your AIVoiceConnect dashboard" : "Create your free AIVoiceConnect account";
+    hideGlobalError();
+    clearAllFields();
+  }
+
+  function clearAllFields() {
+    document.querySelectorAll("input").forEach(i => { i.classList.remove("valid","invalid"); });
+    document.querySelectorAll(".field-msg").forEach(m => { m.className = "field-msg"; m.textContent = ""; });
+  }
+
+  /* ── Global error ── */
+  function showGlobalError(msg) { const e = document.getElementById("globalError"); e.textContent = msg; e.classList.add("visible"); }
+  function hideGlobalError() { document.getElementById("globalError").classList.remove("visible"); }
+
+  /* ── Field helpers ── */
+  function setFieldState(id, state, msg) {
+    const input = document.getElementById(id);
+    const msgEl = document.getElementById("msg-" + id);
+    input.classList.remove("valid","invalid");
+    if (state) input.classList.add(state);
+    if (msgEl) { msgEl.className = "field-msg" + (state === "invalid" ? " err" : state === "valid" ? " ok" : " hint"); msgEl.textContent = msg || ""; }
+  }
+  function clearFieldError(id) { setFieldState(id, "", ""); hideGlobalError(); }
+
+  /* ── Password toggle ── */
+  function togglePwd(id, btn) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type === "password" ? "text" : "password";
+    btn.textContent = inp.type === "password" ? "👁" : "🙈";
+  }
+
+  /* ── Password rules ── */
+  const PWD_RULES = {
+    len:     v => v.length >= 8 && v.length <= 15,
+    upper:   v => /[A-Z]/.test(v),
+    num:     v => /[0-9]/.test(v),
+    special: v => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v),
+  };
+
+  function showRules() { document.getElementById("pwdRules").classList.add("visible"); }
+
+  function validatePassword(blur) {
+    const val = document.getElementById("signupPassword").value;
+    const allMet = Object.entries(PWD_RULES).every(([key, fn]) => {
+      const met = fn(val);
+      document.getElementById("rule-" + key).classList.toggle("met", met);
+      return met;
     });
-    document.querySelectorAll(".panel").forEach(p => {
-      p.classList.toggle("active", p.id === "panel-" + tab);
-    });
-    const h = document.querySelector(".form-heading h1");
-    const sub = document.querySelector(".form-heading p");
-    if (tab === "login") {
-      h.textContent = "Welcome back";
-      sub.textContent = "Sign in to your AIVoiceConnect dashboard";
-    } else {
-      h.textContent = "Get started";
-      sub.textContent = "Create your AIVoiceConnect account";
-    }
-    hideError();
+    if (!val) { setFieldState("signupPassword", "", ""); return false; }
+    if (allMet) { setFieldState("signupPassword", "valid", "Strong password ✓"); return true; }
+    if (blur) { setFieldState("signupPassword", "invalid", "Password does not meet all requirements"); return false; }
+    setFieldState("signupPassword", "", ""); return false;
   }
 
-  function showError(msg) {
-    const el = document.getElementById("error");
-    el.textContent = msg;
-    el.classList.add("visible");
+  function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  function validateLoginEmail(blur) {
+    const val = document.getElementById("loginEmail").value.trim();
+    if (!val) { if (blur) setFieldState("loginEmail","invalid","Email is required"); return false; }
+    if (!isValidEmail(val)) { setFieldState("loginEmail","invalid","Enter a valid email address"); return false; }
+    setFieldState("loginEmail","valid",""); return true;
   }
 
-  function hideError() {
-    document.getElementById("error").classList.remove("visible");
+  function validateSignupEmail(blur) {
+    const val = document.getElementById("signupEmail").value.trim();
+    if (!val) { if (blur) setFieldState("signupEmail","invalid","Email is required"); return false; }
+    if (!isValidEmail(val)) { setFieldState("signupEmail","invalid","Enter a valid email address"); return false; }
+    setFieldState("signupEmail","valid",""); return true;
   }
 
-  document.addEventListener("keydown", (e) => {
+  function validateBusiness(blur) {
+    const val = document.getElementById("signupBusiness").value.trim();
+    if (!val) { if (blur) setFieldState("signupBusiness","invalid","Business name is required"); return false; }
+    if (val.length < 2) { setFieldState("signupBusiness","invalid","At least 2 characters required"); return false; }
+    if (val.length > 100) { setFieldState("signupBusiness","invalid","Max 100 characters"); return false; }
+    setFieldState("signupBusiness","valid",""); return true;
+  }
+
+  /* ── Enter key ── */
+  document.addEventListener("keydown", e => {
     if (e.key !== "Enter") return;
     if (document.getElementById("panel-login").classList.contains("active")) login();
     else signup();
   });
 
+  /* ── Login ── */
   async function login() {
-    const email = document.getElementById("loginEmail").value.trim();
+    hideGlobalError();
+    const email    = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
-    if (!email || !password) return showError("Please enter your email and password.");
+
+    let ok = true;
+    if (!email) { setFieldState("loginEmail","invalid","Email is required"); ok = false; }
+    else if (!isValidEmail(email)) { setFieldState("loginEmail","invalid","Enter a valid email address"); ok = false; }
+    if (!password) { setFieldState("loginPassword","invalid","Password is required"); ok = false; }
+    if (!ok) return;
 
     const btn = document.getElementById("loginBtn");
     btn.disabled = true; btn.textContent = "Signing in…";
-    hideError();
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res  = await fetch("/api/auth/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email, password }) });
       const data = await res.json();
-      if (!res.ok) { showError(data.error || "Login failed"); btn.disabled = false; btn.textContent = "Sign In"; return; }
+      if (!res.ok) {
+        showGlobalError(data.error || "Login failed. Please check your credentials.");
+        btn.disabled = false; btn.textContent = "Sign In";
+        return;
+      }
+      if (data.role === "superadmin") { window.location.href = "/superadmin"; return; }
       window.location.href = "/dashboard";
     } catch {
-      showError("Network error — please try again.");
+      showGlobalError("Network error — please try again.");
       btn.disabled = false; btn.textContent = "Sign In";
     }
   }
 
+  /* ── Sign Up ── */
   async function signup() {
+    hideGlobalError();
+    const bizOk   = validateBusiness(true);
+    const emailOk = validateSignupEmail(true);
+    const pwdOk   = validatePassword(true);
+    if (!bizOk || !emailOk || !pwdOk) return;
+
     const businessName = document.getElementById("signupBusiness").value.trim();
-    const email = document.getElementById("signupEmail").value.trim();
-    const password = document.getElementById("signupPassword").value;
-    if (!businessName || !email || !password) return showError("Please fill in all fields.");
-    if (businessName.length < 2) return showError("Business name must be at least 2 characters.");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError("Enter a valid email address.");
-    if (password.length < 8) return showError("Password must be at least 8 characters.");
-    if (!/[A-Z]/.test(password)) return showError("Password must contain at least one uppercase letter.");
-    if (!/[0-9]/.test(password)) return showError("Password must contain at least one number.");
+    const email        = document.getElementById("signupEmail").value.trim();
+    const password     = document.getElementById("signupPassword").value;
 
     const btn = document.getElementById("signupBtn");
     btn.disabled = true; btn.textContent = "Creating account…";
-    hideError();
 
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, businessName }),
-      });
+      const res  = await fetch("/api/auth/signup", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email, password, businessName }) });
       const data = await res.json();
-      if (!res.ok) { showError(data.error || "Signup failed"); btn.disabled = false; btn.textContent = "Create Account"; return; }
+      if (!res.ok) {
+        showGlobalError(data.error || "Signup failed. Please try again.");
+        btn.disabled = false; btn.textContent = "Create Account";
+        return;
+      }
       window.location.href = "/dashboard";
     } catch {
-      showError("Network error — please try again.");
+      showGlobalError("Network error — please try again.");
       btn.disabled = false; btn.textContent = "Create Account";
     }
   }
