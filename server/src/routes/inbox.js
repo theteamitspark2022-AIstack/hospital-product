@@ -194,6 +194,77 @@ router.post("/inbound", async (req, res) => {
   res.sendStatus(204);
 });
 
+// POST /api/inbox/simulate — test Buddy booking conversation without sending WhatsApp
+// Body: { customerNumber, message, businessId (optional) }
+router.post("/simulate", requireAuth, async (req, res) => {
+  const { customerNumber, message } = req.body;
+  if (!customerNumber || !message) return res.status(400).json({ error: "customerNumber and message required" });
+
+  const businessId = req.auth?.businessId;
+  if (!db.isConnected()) return res.status(503).json({ error: "DB not connected" });
+
+  try {
+    // Upsert conversation
+    await db.query(
+      `INSERT INTO conversations (customer_number, status, last_message, last_message_at, opt_in_whatsapp, opt_in_at, business_id)
+       VALUES ($1, 'open', $2, NOW(), true, NOW(), $3)
+       ON CONFLICT (customer_number) DO UPDATE SET
+         last_message = $2, last_message_at = NOW(),
+         status = CASE WHEN conversations.status = 'resolved' THEN 'open' ELSE conversations.status END,
+         business_id = $3`,
+      [customerNumber, message, businessId]
+    );
+
+    const { rows } = await db.query("SELECT id FROM conversations WHERE customer_number = $1", [customerNumber]);
+    const convId = rows[0]?.id;
+
+    // Save inbound message
+    await db.query(
+      `INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'inbound', $2, $3)`,
+      [convId, message, `SIM_${Date.now()}`]
+    );
+
+    // Run Buddy
+    const settings = await getBusinessSettings(businessId);
+    const { rows: history } = await db.query(
+      `SELECT direction, body FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC`,
+      [convId]
+    );
+    const today = new Date().toISOString().split("T")[0];
+    const { reply, booking } = await handleBookingConversation(history, settings.business_name, settings.sector, today);
+
+    // Save Buddy's reply as outbound (no Twilio)
+    if (reply) {
+      await db.query(
+        `INSERT INTO messages (conversation_id, direction, body, twilio_sid) VALUES ($1, 'outbound', $2, $3)`,
+        [convId, reply, `SIM_OUT_${Date.now()}`]
+      );
+      await db.query("UPDATE conversations SET last_message = $1, last_message_at = NOW() WHERE id = $2", [reply, convId]);
+    }
+
+    // Save appointment if booking detected
+    let appointmentSaved = false;
+    if (booking?.name && booking?.date && booking?.time) {
+      try {
+        const apptAt = new Date(`${booking.date}T${booking.time}:00`);
+        await db.query(
+          `INSERT INTO appointments (business_id, customer_number, customer_name, appointment_at, notes, status)
+           VALUES ($1, $2, $3, $4, $5, 'confirmed')`,
+          [businessId, customerNumber, booking.name, apptAt, booking.notes || "Booked via WhatsApp"]
+        );
+        appointmentSaved = true;
+      } catch (err) {
+        console.error("Simulate appointment insert failed:", err.message);
+      }
+    }
+
+    res.json({ reply, booking, appointmentSaved, conversationId: convId });
+  } catch (err) {
+    console.error("Simulate error:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/inbox — list open threads sorted by wait time
 router.get("/", requireAuth, async (req, res) => {
   if (!db.isConnected()) return res.json([]);
