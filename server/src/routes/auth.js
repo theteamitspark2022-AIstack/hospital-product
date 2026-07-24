@@ -123,7 +123,7 @@ router.post("/forgot-password", async (req, res) => {
   if (!email) return res.status(400).json({ error: "Email required" });
   try {
     const { rows } = await db.query("SELECT id FROM users WHERE email = $1", [email.toLowerCase().trim()]);
-    // Always respond OK to avoid email enumeration
+    console.log(`[forgot-password] lookup ${email}: ${rows.length} user(s) found`);
     if (!rows.length) return res.json({ ok: true });
 
     const userId = rows[0].id;
