@@ -4,6 +4,7 @@ const db = require("../models/db");
 const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 const { getPlan } = require("../config/plans");
+const { sendWelcomeEmail, sendAgentWelcomeEmail } = require("../services/emailService");
 
 // GET /api/superadmin/businesses
 router.get("/businesses", async (req, res) => {
@@ -142,6 +143,8 @@ router.post("/businesses/:id/team", async (req, res) => {
        VALUES ($1, $2, $3, $4) RETURNING id, email, role`,
       [email.toLowerCase().trim(), hash, req.params.id, role]
     );
+    const bizName = bizRow.rows[0] ? (await db.query("SELECT business_name FROM settings WHERE business_id=$1 LIMIT 1", [req.params.id])).rows[0]?.business_name || "AIVoiceConnect" : "AIVoiceConnect";
+    sendAgentWelcomeEmail(email.toLowerCase().trim(), bizName, password).catch(() => {});
     res.status(201).json(rows[0]);
   } catch (err) {
     if (err.code === "23505") return res.status(409).json({ error: "Email already exists" });

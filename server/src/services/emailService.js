@@ -80,4 +80,34 @@ async function sendPasswordResetEmail(email, resetUrl) {
   });
 }
 
-module.exports = { sendWelcomeEmail, sendPasswordResetEmail };
+async function sendAgentWelcomeEmail(email, businessName, password) {
+  const appUrl = process.env.APP_URL || "https://hospital-product.onrender.com";
+  return sendEmail({
+    to: email,
+    subject: `You've been added to ${businessName} on AIVoiceConnect`,
+    html: `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #E2E8F0;">
+        <div style="background:linear-gradient(135deg,#020817,#1368D8);padding:32px 36px;">
+          <h1 style="color:#fff;font-size:22px;margin:0;font-weight:800;">AIVoiceConnect</h1>
+          <p style="color:rgba(255,255,255,0.65);font-size:13px;margin:6px 0 0;">Team invitation</p>
+        </div>
+        <div style="padding:32px 36px;">
+          <h2 style="color:#020817;font-size:18px;margin:0 0 12px;">You've been added to ${businessName}</h2>
+          <p style="color:#64748B;font-size:14px;line-height:1.65;margin:0 0 20px;">An account has been created for you on AIVoiceConnect. Use the credentials below to log in.</p>
+          <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+            <p style="margin:0 0 8px;font-size:13px;color:#64748B;"><strong style="color:#020817;">Email:</strong> ${email}</p>
+            <p style="margin:0;font-size:13px;color:#64748B;"><strong style="color:#020817;">Temporary password:</strong> ${password}</p>
+          </div>
+          <a href="${appUrl}/login"
+             style="display:inline-block;background:linear-gradient(135deg,#3182ED,#1368D8);color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">
+            Sign in →
+          </a>
+          <p style="color:#94A3B8;font-size:12px;margin:28px 0 0;padding-top:20px;border-top:1px solid #F1F5F9;">
+            Please change your password after your first login.
+          </p>
+        </div>
+      </div>`,
+  });
+}
+
+module.exports = { sendWelcomeEmail, sendPasswordResetEmail, sendAgentWelcomeEmail };
