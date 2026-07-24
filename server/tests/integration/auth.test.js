@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 
 const VALID_USER = {
   email: "owner@testbiz.com",
-  password: "Secret123",
+  password: "Secret123!",
   businessName: "Test Business",
 };
 
