@@ -32,9 +32,11 @@
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^9.0.3",
     "pptxgenjs": "^4.0.1",
+    "resend": "^6.18.0",
     "stripe": "^22.3.2",
     "twilio": "^5.1.0",
-    "uuid": "^14.0.1"
+    "uuid": "^14.0.1",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "eslint": "^8.57.1",
