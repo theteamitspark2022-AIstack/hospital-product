@@ -16,3 +16,10 @@ jest.mock("../src/services/reminderService", () => ({
   runReminderCheck: jest.fn(),
   sendReminder: jest.fn(),
 }));
+
+// Stub email service — no real HTTP calls in tests
+jest.mock("../src/services/emailService", () => ({
+  sendWelcomeEmail: jest.fn().mockResolvedValue(true),
+  sendAgentWelcomeEmail: jest.fn().mockResolvedValue(true),
+  sendPasswordResetEmail: jest.fn().mockResolvedValue(true),
+}));
