@@ -1,30 +1,23 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 const APP_URL = process.env.APP_URL || "https://hospital-product.onrender.com";
+const FROM = process.env.EMAIL_FROM || "AIVoiceConnect <onboarding@resend.dev>";
 
-function getTransporter() {
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-  if (!user || !pass) {
-    console.warn("[email] GMAIL_USER or GMAIL_APP_PASSWORD not set — emails disabled");
+function getClient() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    console.warn("[email] RESEND_API_KEY not set — emails disabled");
     return null;
   }
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: { user, pass },
-  });
+  return new Resend(key);
 }
 
 async function sendEmail({ to, subject, html }) {
-  const transporter = getTransporter();
-  if (!transporter) return false;
+  const resend = getClient();
+  if (!resend) return false;
   try {
-    await transporter.sendMail({
-      from: `"AIVoiceConnect" <${process.env.GMAIL_USER}>`,
-      to, subject, html,
-    });
+    const { error } = await resend.emails.send({ from: FROM, to, subject, html });
+    if (error) { console.error("[email] Failed to send:", error.message); return false; }
     console.log(`[email] Sent "${subject}" to ${to}`);
     return true;
   } catch (err) {
